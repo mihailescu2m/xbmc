@@ -22,7 +22,7 @@
 #if (defined HAVE_CONFIG_H) && (!defined WIN32)
   #include "config.h"
 #endif
-#include "LinuxV4l2.h"
+#include "LinuxV4L2.h"
 
 #include "xbmc/utils/log.h"
 
@@ -38,17 +38,17 @@
 #ifdef CLASSNAME
 #undef CLASSNAME
 #endif
-#define CLASSNAME "CLinuxV4l2"
+#define CLASSNAME "CLinuxV4L2"
 
-CLinuxV4l2::CLinuxV4l2()
+CLinuxV4L2::CLinuxV4L2()
 {
 }
 
-CLinuxV4l2::~CLinuxV4l2()
+CLinuxV4L2::~CLinuxV4L2()
 {
 }
 
-int CLinuxV4l2::RequestBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, int numBuffers)
+int CLinuxV4L2::RequestBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, int numBuffers)
 {
   struct v4l2_requestbuffers reqbuf;
   int ret = 0;
@@ -72,7 +72,7 @@ int CLinuxV4l2::RequestBuffer(int device, enum v4l2_buf_type type, enum v4l2_mem
   return reqbuf.count;
 }
 
-bool CLinuxV4l2::StreamOn(int device, enum v4l2_buf_type type, int onoff)
+bool CLinuxV4L2::StreamOn(int device, enum v4l2_buf_type type, int onoff)
 {
   int ret = 0;
   enum v4l2_buf_type setType = type;
@@ -87,7 +87,7 @@ bool CLinuxV4l2::StreamOn(int device, enum v4l2_buf_type type, int onoff)
   return true;
 }
 
-bool CLinuxV4l2::MmapBuffers(int device, int count, V4L2Buffer *v4l2Buffers, enum v4l2_buf_type type, enum v4l2_memory memory, bool queue)
+bool CLinuxV4L2::MmapBuffers(int device, int count, V4L2Buffer *v4l2Buffers, enum v4l2_buf_type type, enum v4l2_memory memory, bool queue)
 {
   struct v4l2_buffer buf;
   struct v4l2_plane planes[V4L2_NUM_MAX_PLANES];
@@ -144,7 +144,7 @@ bool CLinuxV4l2::MmapBuffers(int device, int count, V4L2Buffer *v4l2Buffers, enu
   return true;
 }
 
-V4L2Buffer *CLinuxV4l2::FreeBuffers(int count, V4L2Buffer *v4l2Buffers)
+V4L2Buffer *CLinuxV4L2::FreeBuffers(int count, V4L2Buffer *v4l2Buffers)
 {
   int i, j;
 
@@ -168,7 +168,7 @@ V4L2Buffer *CLinuxV4l2::FreeBuffers(int count, V4L2Buffer *v4l2Buffers)
   return NULL;
 }
 
-int CLinuxV4l2::DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, double *dequeuedTimestamp)
+int CLinuxV4L2::DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, double *dequeuedTimestamp)
 {
   struct v4l2_buffer vbuf;
   struct v4l2_plane  vplanes[V4L2_NUM_MAX_PLANES];
@@ -201,7 +201,7 @@ int CLinuxV4l2::DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_mem
   return vbuf.index;
 }
 
-int CLinuxV4l2::QueueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, V4L2Buffer *buffer)
+int CLinuxV4L2::QueueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, V4L2Buffer *buffer)
 {
   struct v4l2_buffer vbuf;
   struct v4l2_plane  vplanes[buffer->iNumPlanes];
@@ -247,7 +247,7 @@ int CLinuxV4l2::QueueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memor
   return vbuf.index;
 }
 
-int CLinuxV4l2::PollInput(int device, int timeout)
+int CLinuxV4L2::PollInput(int device, int timeout)
 {
   int ret = 0;
   struct pollfd p;
@@ -268,7 +268,7 @@ int CLinuxV4l2::PollInput(int device, int timeout)
   return V4L2_READY;
 }
 
-int CLinuxV4l2::PollOutput(int device, int timeout)
+int CLinuxV4L2::PollOutput(int device, int timeout)
 {
   int ret = 0;
   struct pollfd p;
@@ -289,7 +289,7 @@ int CLinuxV4l2::PollOutput(int device, int timeout)
   return V4L2_READY;
 }
 
-int CLinuxV4l2::SetControllValue(int device, int id, int value)
+int CLinuxV4L2::SetControllValue(int device, int id, int value)
 {
   struct v4l2_control control;
   int ret;

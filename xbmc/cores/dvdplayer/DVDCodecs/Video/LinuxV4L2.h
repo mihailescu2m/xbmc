@@ -53,11 +53,11 @@ typedef struct V4L2Buffer
 }
 #endif
 
-class CLinuxV4l2
+class CLinuxV4L2
 {
 public:
-  CLinuxV4l2();
-  virtual ~CLinuxV4l2();
+  CLinuxV4L2();
+  virtual ~CLinuxV4L2();
 
   static int RequestBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, int numBuffers);
   static bool StreamOn(int device, enum v4l2_buf_type type, int onoff);

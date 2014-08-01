@@ -23,7 +23,7 @@
 #include "DVDVideoCodec.h"
 #include "DVDStreamInfo.h"
 #include "utils/BitstreamConverter.h"
-#include "xbmc/linux/LinuxV4l2.h"
+#include "LinuxV4L2.h"
 
 #ifndef V4L2_CAP_VIDEO_M2M_MPLANE
   #define V4L2_CAP_VIDEO_M2M_MPLANE 0x00004000
