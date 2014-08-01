@@ -43,6 +43,9 @@
 #include "utils/AMLUtils.h"
 #include "Video/DVDVideoCodecAmlogic.h"
 #endif
+#if defined(HAS_MFC)
+#include "Video/DVDVideoCodecMFC.h"
+#endif
 #if defined(TARGET_ANDROID)
 #include "Video/DVDVideoCodecAndroidMediaCodec.h"
 #include "android/activity/AndroidFeatures.h"
@@ -191,6 +194,11 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, unsigne
 #elif defined(TARGET_POSIX) && !defined(TARGET_DARWIN)
   hwSupport += "VAAPI:no ";
 #endif
+#if defined(HAS_MFC) && defined(_LINUX)
+  hwSupport += "MFC:yes ";
+#elif defined(_LINUX)
+  hwSupport += "MFC:no ";
+#endif
 
   CLog::Log(LOGDEBUG, "CDVDFactoryCodec: compiled in hardware support: %s", hwSupport.c_str());
 
@@ -259,6 +267,10 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, unsigne
       }
     }
   }
+#endif
+
+#if defined(HAS_MFC) && defined(_LINUX)
+  if( (pCodec = OpenCodec(new CDVDVideoCodecMFC(), hint, options)) ) return pCodec;
 #endif
 
 #if defined(TARGET_ANDROID)
