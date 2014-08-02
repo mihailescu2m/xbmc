@@ -31,7 +31,7 @@
 #define FIMC_CAPTURE_BUFFERS_CNT        3       // 2 begins to be slow.
 #define MFC_OUTPUT_BUFFERS_CNT          3       // 1 doesn't work at all, 2 is enough most of the times, but in a rare case of interlaced video two buffers
                                                 // must be queued all the time to get fill picture from interlaced frames, so let's have them 3
-#define MFC_CAPTURE_EXTRA_BUFFER_CNT    16      // these are extra buffers, better keep their count as big as going to be simultaneous dequeued buffers number
+#define MFC_CAPTURE_EXTRA_BUFFER_CNT    8       // these are extra buffers, better keep their count as big as going to be simultaneous dequeued buffers number
 
 #define memzero(x) memset(&(x), 0, sizeof (x))
 

@@ -468,8 +468,8 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
     return false;
   }
   CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE want %d buffers", CLASSNAME, __func__, ctrl.value);
-  m_MFCCaptureBuffersCount = (ctrl.value + MFC_CAPTURE_EXTRA_BUFFER_CNT) % 24; // We need more extra capture buffers for cozy decoding
-                                                                               // We use the defined extra buffers, but we cap to 24 buffers
+  m_MFCCaptureBuffersCount = (ctrl.value + MFC_CAPTURE_EXTRA_BUFFER_CNT) % 32; // We need more extra capture buffers for cozy decoding
+                                                                               // We use the defined extra buffers, but we cap to 32 buffers (max MFC supports)
   // Request MFC CAPTURE buffers
   CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE Going to ask for %d buffers", CLASSNAME, __func__, m_MFCCaptureBuffersCount);
   m_MFCCaptureBuffersCount = CLinuxV4L2::RequestBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, m_MFCCaptureBuffersCount);
