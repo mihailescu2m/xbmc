@@ -301,7 +301,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
     return false;
   }
 
-  if (!m_hasNV12Support)
+  if (!m_hasNV12Support) //MFC5
   {
     // FIMC color convertor required
     if (!OpenConverter())
@@ -416,7 +416,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
   CLog::Log(LOGDEBUG, "%s::%s - MFC OUTPUT Stream ON", CLASSNAME, __func__);
 
   // Setup MFC CAPTURE format
-  if (m_iConverterHandle < 0)
+  if (m_hasNV12Support) //MFC>5
   {
     memzero(fmt);
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
@@ -502,10 +502,9 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
   }
   CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE Stream ON", CLASSNAME, __func__);
 
-  if (m_iConverterHandle > -1)
+  if (!m_hasNV12Support) //MFC5
   {
-
-  // Setup FIMC OUTPUT fmt with data from MFC CAPTURE
+    // Setup FIMC OUTPUT fmt with data from MFC CAPTURE
     fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
     ret = ioctl(m_iConverterHandle, VIDIOC_S_FMT, &fmt);
     if (ret != 0)
@@ -608,7 +607,6 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
       return false;
     }
     CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE Stream ON", CLASSNAME, __func__);
-
   }
 
   m_videoBuffer.iFlags          = DVP_FLAG_ALLOCATED;
@@ -727,7 +725,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts)
 
   if (m_iDequeuedToPresentBufferNumber >= 0)
   {
-    if (m_iConverterHandle > -1)
+    if (!m_hasNV12Support) //MFC5
     {
      if (!m_v4l2FIMCCaptureBuffers[m_iDequeuedToPresentBufferNumber].bQueue)
      {
@@ -741,7 +739,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts)
         m_iDequeuedToPresentBufferNumber = -1;
       }
     }
-    else
+    else //MFC>5
     {
      if (!m_v4l2MFCCaptureBuffers[m_iDequeuedToPresentBufferNumber].bQueue)
      {
@@ -785,7 +783,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts)
   }
   else
   {
-    if (m_iConverterHandle > -1)
+    if (!m_hasNV12Support) //MFC5
     {
       ret = CLinuxV4L2::QueueBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_USERPTR, &m_v4l2MFCCaptureBuffers[index]);
       if (ret == V4L2_ERROR)
@@ -828,7 +826,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts)
       m_videoBuffer.data[1]         = (BYTE*)m_v4l2FIMCCaptureBuffers[index].cPlane[1];
       m_videoBuffer.pts             = m_v4l2FIMCCaptureBuffers[index].timestamp;
     }
-    else
+    else //MFC>5
     {
       m_videoBuffer.data[0]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
       m_videoBuffer.data[1]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
