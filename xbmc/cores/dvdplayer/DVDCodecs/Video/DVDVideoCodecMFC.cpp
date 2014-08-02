@@ -35,6 +35,7 @@ CDVDVideoCodecMFC::CDVDVideoCodecMFC() : CDVDVideoCodec()
 {
   m_iDecoderHandle = -1;
   m_iConverterHandle = -1;
+
   memzero(m_videoBuffer);
 
   m_bVideoConvert = false;
@@ -89,10 +90,11 @@ void CDVDVideoCodecMFC::Dispose()
   }
 
   memzero(m_videoBuffer);
+
   m_iDequeuedToPresentBufferNumber = -1;
 }
 
-bool CDVDVideoCodecMFC::OpenDevices()
+bool CDVDVideoCodecMFC::OpenDecoder()
 {
   DIR *dir;
   struct dirent *ent;
@@ -111,10 +113,13 @@ bool CDVDVideoCodecMFC::OpenDevices()
         char target[1024];
         int ret;
 
-        snprintf(sysname, 64, "/sys/class/video4linux/%s", ent->d_name);
-        snprintf(name, 64, "/sys/class/video4linux/%s/name", ent->d_name);
+        snprintf(sysname, sizeof(sysname), "/sys/class/video4linux/%s", ent->d_name);
+        snprintf(name, sizeof(name), "/sys/class/video4linux/%s/name", ent->d_name);
 
         FILE* fp = fopen(name, "r");
+        if (fp == NULL)
+          continue;
+
         if (fgets(drivername, 32, fp) != NULL)
         {
           p = strchr(drivername, '\n');
@@ -136,7 +141,7 @@ bool CDVDVideoCodecMFC::OpenDevices()
         if (p == NULL)
           continue;
 
-        sprintf(devname, "/dev/%s", ++p);
+        snprintf(devname, sizeof(devname), "/dev/%s", ++p);
 
         if (m_iDecoderHandle < 0 && strncmp(drivername, "s5p-mfc-dec", 11) == 0)
         {
@@ -144,42 +149,120 @@ bool CDVDVideoCodecMFC::OpenDevices()
           int fd = open(devname, O_RDWR | O_NONBLOCK, 0);
           if (fd > 0)
           {
-            memzero(cap);
+            memset(&(cap), 0, sizeof (cap));
             ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
             if (ret == 0)
-              if (cap.capabilities & V4L2_CAP_STREAMING &&
-                (cap.capabilities & V4L2_CAP_VIDEO_M2M_MPLANE ||
-                (cap.capabilities & (V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE))))
+              if ((cap.capabilities & V4L2_CAP_VIDEO_M2M_MPLANE ||
+                ((cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE) && (cap.capabilities & V4L2_CAP_VIDEO_OUTPUT_MPLANE))) &&
+                (cap.capabilities & V4L2_CAP_STREAMING))
               {
                 m_iDecoderHandle = fd;
                 CLog::Log(LOGDEBUG, "%s::%s - Found %s %s", CLASSNAME, __func__, drivername, devname);
-                struct v4l2_format fmt;
-                memzero(fmt);
-                fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-                fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12M;
-                if (ioctl(m_iDecoderHandle, VIDIOC_TRY_FMT, &fmt) == 0)
-                {
-                  CLog::Log(LOGDEBUG, "%s::%s - Direct decoding to untiled picture is supported, no conversion needed", CLASSNAME, __func__);
-                  m_iConverterHandle = -1;
-                  return true;
-                }
               }
           }
           if (m_iDecoderHandle < 0)
             close(fd);
         }
+        if (m_iDecoderHandle >= 0)
+        {
+          // MFC should at least support NV12MT format
+          return CheckDecoderFormats();
+        }
+      }
+    }
+    closedir (dir);
+  }
+  return false;
+}
+
+bool CDVDVideoCodecMFC::CheckDecoderFormats()
+{
+  // we enumerate all the supported formats looking for NV12MT and NV12
+  int index = 0;
+  int ret   = -1;
+  bool hasNV12MTSupport = false;
+  m_hasNV12Support      = false;
+  while (true)
+  {
+    struct v4l2_fmtdesc vid_fmtdesc = {};
+    vid_fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+    vid_fmtdesc.index = index++;
+
+    ret = ioctl(m_iDecoderHandle, VIDIOC_ENUM_FMT, &vid_fmtdesc);
+    if (ret != 0)
+      break;
+    CLog::Log(LOGDEBUG, "%s::%s - Decoder format %d: %c%c%c%c (%s)", CLASSNAME, __func__, vid_fmtdesc.index,
+        vid_fmtdesc.pixelformat & 0xFF, (vid_fmtdesc.pixelformat >> 8) & 0xFF,
+        (vid_fmtdesc.pixelformat >> 16) & 0xFF, (vid_fmtdesc.pixelformat >> 24) & 0xFF,
+        vid_fmtdesc.description);
+    if (vid_fmtdesc.pixelformat == V4L2_PIX_FMT_NV12MT)
+      hasNV12MTSupport = true;
+    if (vid_fmtdesc.pixelformat == V4L2_PIX_FMT_NV12)
+      m_hasNV12Support = true;
+  }
+  return hasNV12MTSupport;
+}
+
+bool CDVDVideoCodecMFC::OpenConverter()
+{
+  DIR *dir;
+  struct dirent *ent;
+
+  if ((dir = opendir ("/sys/class/video4linux/")) != NULL)
+  {
+    while ((ent = readdir (dir)) != NULL)
+    {
+      if (strncmp(ent->d_name, "video", 5) == 0)
+      {
+        char *p;
+        char name[64];
+        char devname[64];
+        char sysname[64];
+        char drivername[32];
+        char target[1024];
+        int ret;
+
+        snprintf(sysname, sizeof(sysname), "/sys/class/video4linux/%s", ent->d_name);
+        snprintf(name, sizeof(name), "/sys/class/video4linux/%s/name", ent->d_name);
+
+        FILE* fp = fopen(name, "r");
+        if (fp == NULL)
+          continue;
+
+        if (fgets(drivername, 32, fp) != NULL)
+        {
+          p = strchr(drivername, '\n');
+          if (p != NULL)
+            *p = '\0';
+        }
+        else
+        {
+          fclose(fp);
+          continue;
+        }
+        fclose(fp);
+
+        ret = readlink(sysname, target, sizeof(target));
+        if (ret < 0)
+          continue;
+        target[ret] = '\0';
+        p = strrchr(target, '/');
+        if (p == NULL)
+          continue;
+
+        snprintf(devname, sizeof(devname), "/dev/%s", ++p);
+
         if (m_iConverterHandle < 0 && strstr(drivername, "fimc") != NULL && strstr(drivername, "m2m") != NULL)
         {
           struct v4l2_capability cap;
-          int fd = open(devname, O_RDWR | O_NONBLOCK, 0);
-          if (fd > 0)
-          {
-            memzero(cap);
+          int fd = open(devname, O_RDWR, 0);
+          if (fd > 0) {
+            memset(&(cap), 0, sizeof (cap));
             ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
             if (ret == 0)
-              if (cap.capabilities & V4L2_CAP_STREAMING &&
-                (cap.capabilities & V4L2_CAP_VIDEO_M2M_MPLANE ||
-                (cap.capabilities & (V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE))))
+              if ((cap.capabilities & V4L2_CAP_VIDEO_M2M_MPLANE ||
+                ((cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE) && (cap.capabilities & V4L2_CAP_VIDEO_OUTPUT_MPLANE))) &&
+                (cap.capabilities & V4L2_CAP_STREAMING))
               {
                 m_iConverterHandle = fd;
                 CLog::Log(LOGDEBUG, "%s::%s - Found %s %s", CLASSNAME, __func__, drivername, devname);
@@ -188,7 +271,7 @@ bool CDVDVideoCodecMFC::OpenDevices()
           if (m_iConverterHandle < 0)
             close(fd);
         }
-        if (m_iDecoderHandle >= 0 && m_iConverterHandle >= 0)
+        if (m_iConverterHandle >= 0)
           return true;
       }
     }
@@ -212,10 +295,20 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
   Dispose();
   m_hints = hints;
 
-  if (!OpenDevices())
+  if (!OpenDecoder())
   {
-    CLog::Log(LOGERROR, "%s::%s - Devices not found", CLASSNAME, __func__);
+    CLog::Log(LOGERROR, "%s::%s - MFC device not found", CLASSNAME, __func__);
     return false;
+  }
+
+  if (!m_hasNV12Support)
+  {
+    // FIMC color convertor required
+    if (!OpenConverter())
+    {
+      CLog::Log(LOGERROR, "%s::%s - FIMC device not found", CLASSNAME, __func__);
+      return false;
+    }
   }
 
   m_bVideoConvert = m_converter.Open(m_hints.codec, (uint8_t *)m_hints.extradata, m_hints.extrasize, true);

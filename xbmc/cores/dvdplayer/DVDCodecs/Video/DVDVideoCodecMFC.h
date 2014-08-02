@@ -52,10 +52,14 @@ public:
   virtual const char* GetName() { return m_name.c_str(); }; // m_name is never changed after open 
 
 protected:
-  bool OpenDevices();
+  bool OpenDecoder();
+  bool CheckDecoderFormats();
+  bool m_hasNV12Support;
+  int  m_iDecoderHandle;
 
-  int                 m_iDecoderHandle;
-  int                 m_iConverterHandle;
+  bool OpenConverter();
+  int  m_iConverterHandle;
+
   CBitstreamConverter m_converter;
   DVDVideoPicture     m_videoBuffer;
 
