@@ -270,7 +270,11 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, unsigne
 #endif
 
 #if defined(HAS_MFC) && defined(_LINUX)
-  if( (pCodec = OpenCodec(new CDVDVideoCodecMFC(), hint, options)) ) return pCodec;
+  if (!hint.software)
+  {
+    CLog::Log(LOGINFO, "Exynos MFC Video Decoder...");
+    if( (pCodec = OpenCodec(new CDVDVideoCodecMFC(), hint, options)) ) return pCodec;
+  }
 #endif
 
 #if defined(TARGET_ANDROID)
