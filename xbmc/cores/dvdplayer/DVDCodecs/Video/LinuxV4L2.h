@@ -32,6 +32,9 @@
 #ifndef V4L2_CAP_VIDEO_M2M_MPLANE
 #define V4L2_CAP_VIDEO_M2M_MPLANE     0x00004000
 #endif
+#ifndef V4L2_BUF_FLAG_TIMESTAMP_COPY
+#define V4L2_BUF_FLAG_TIMESTAMP_COPY  0x00004000
+#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -710,9 +710,8 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts)
       demuxer_content = m_converter.GetConvertBuffer();
     }
 
-    demuxer_bytes = (demuxer_bytes < m_v4l2MFCOutputBuffers[index].iSize[0]) ? demuxer_bytes : m_v4l2MFCOutputBuffers[index].iSize[0];
-    fast_memcpy((uint8_t *)m_v4l2MFCOutputBuffers[index].cPlane[0], demuxer_content, demuxer_bytes);
-    m_v4l2MFCOutputBuffers[index].iBytesUsed[0] = demuxer_bytes;
+    m_v4l2MFCOutputBuffers[index].iBytesUsed[0] = (demuxer_bytes < m_v4l2MFCOutputBuffers[index].iSize[0]) ? demuxer_bytes : m_v4l2MFCOutputBuffers[index].iSize[0];
+    fast_memcpy((uint8_t *)m_v4l2MFCOutputBuffers[index].cPlane[0], demuxer_content, m_v4l2MFCOutputBuffers[index].iBytesUsed[0]);
     m_v4l2MFCOutputBuffers[index].timestamp = pts;
     ret = CLinuxV4L2::QueueBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_MMAP, &m_v4l2MFCOutputBuffers[index]);
     if (ret == V4L2_ERROR)
