@@ -75,7 +75,9 @@ public:
 
   Keyboard(struct wl_keyboard *,
            IKeyboardReceiver &);
-  ~Keyboard();
+  ~Keyboard() {
+    wl_keyboard_destroy(m_keyboard);
+  }
 
   Keyboard(const Keyboard &) = delete;
   Keyboard &operator=(const Keyboard &) = delete;
