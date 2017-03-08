@@ -37,28 +37,6 @@ xw::ShellSurface::ShellSurface(struct wl_shell_surface *shell_surface) :
                                 reinterpret_cast<void *>(this));
 }
 
-xw::ShellSurface::~ShellSurface()
-{
-  wl_shell_surface_destroy(m_shellSurface);
-}
-
-struct wl_shell_surface *
-xw::ShellSurface::GetWlShellSurface()
-{
-  return m_shellSurface;
-}
-
-void
-xw::ShellSurface::SetFullscreen(enum wl_shell_surface_fullscreen_method method,
-                                uint32_t framerate,
-                                struct wl_output *output)
-{
-  wl_shell_surface_set_fullscreen(m_shellSurface,
-                                  method,
-                                  framerate,
-                                  output);
-}
-
 void
 xw::ShellSurface::HandlePingCallback(void *data,
                                      struct wl_shell_surface *shell_surface,
