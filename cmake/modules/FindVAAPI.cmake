@@ -24,6 +24,8 @@ find_library(VAAPI_libva_LIBRARY NAMES va
                                  PATHS ${PC_VAAPI_libva_LIBDIR})
 find_library(VAAPI_libva-x11_LIBRARY NAMES va-x11
                                      PATHS ${PC_VAAPI_libva_LIBDIR})
+find_library(VAAPI_libva-wayland_LIBRARY NAMES va-wayland
+                                         PATHS ${PC_VAAPI_libva_LIBDIR})
 find_library(VAAPI_libva-drm_LIBRARY NAMES va-drm
                                      PATHS ${PC_VAAPI_libva_LIBDIR})
 
@@ -41,18 +43,23 @@ endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VAAPI
-                                  REQUIRED_VARS VAAPI_libva_LIBRARY VAAPI_libva-x11_LIBRARY VAAPI_libva-drm_LIBRARY VAAPI_INCLUDE_DIR
+                                  REQUIRED_VARS VAAPI_libva_LIBRARY VAAPI_libva-x11_LIBRARY VAAPI_libva-wayland_LIBRARY VAAPI_libva-drm_LIBRARY VAAPI_INCLUDE_DIR
                                   VERSION_VAR VAAPI_VERSION_STRING)
 
 if(VAAPI_FOUND)
   set(VAAPI_INCLUDE_DIRS ${VAAPI_INCLUDE_DIR})
-  set(VAAPI_LIBRARIES ${VAAPI_libva_LIBRARY} ${VAAPI_libva-x11_LIBRARY} ${VAAPI_libva-drm_LIBRARY})
+  set(VAAPI_LIBRARIES ${VAAPI_libva_LIBRARY} ${VAAPI_libva-x11_LIBRARY} ${VAAPI_libva-wayland_LIBRARY} ${VAAPI_libva-drm_LIBRARY})
   set(VAAPI_DEFINITIONS -DHAVE_LIBVA=1)
 
   if(NOT TARGET VAAPI::VAAPI_X11)
     add_library(VAAPI::VAAPI_X11 UNKNOWN IMPORTED)
     set_target_properties(VAAPI::VAAPI_X11 PROPERTIES
                                            IMPORTED_LOCATION "${VAAPI_libva-x11_LIBRARY}")
+  endif()
+  if(NOT TARGET VAAPI::VAAPI_WAYLAND)
+    add_library(VAAPI::VAAPI_WAYLAND UNKNOWN IMPORTED)
+    set_target_properties(VAAPI::VAAPI_WAYLAND PROPERTIES
+                                           IMPORTED_LOCATION "${VAAPI_libva-wayland_LIBRARY}")
   endif()
   if (NOT TARGET VAAPI::VAAPI_DRM)
     add_library(VAAPI::VAAPI_DRM UNKNOWN IMPORTED)
@@ -69,4 +76,4 @@ if(VAAPI_FOUND)
   endif()
 endif()
 
-mark_as_advanced(VAAPI_INCLUDE_DIR VAAPI_libva_LIBRARY VAAPI_libva-x11_LIBRARY VAAPI_libva-drm_LIBRARY)
+mark_as_advanced(VAAPI_INCLUDE_DIR VAAPI_libva_LIBRARY VAAPI_libva-x11_LIBRARY VAAPI_libva-wayland_LIBRARY VAAPI_libva-drm_LIBRARY)

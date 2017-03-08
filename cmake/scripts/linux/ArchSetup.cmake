@@ -41,6 +41,6 @@ if(CMAKE_BUILD_TYPE STREQUAL Coverage)
   set(COVERAGE_EXCLUDES */test/* lib/* */lib/*)
 endif()
 
-if(ENABLE_MIR)
+if(ENABLE_MIR OR ENABLE_WAYLAND)
   set(ENABLE_VDPAU OFF CACHE BOOL "Disabling VDPAU since no Mir support" FORCE)
 endif()
