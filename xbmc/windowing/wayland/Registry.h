@@ -25,10 +25,6 @@
 
 #include <wayland-client.h>
 
-#include "WaylandProtocol.h"
-
-class IDllWaylandClient;
-
 namespace xbmc
 {
 namespace wayland
@@ -74,8 +70,7 @@ class Registry
 {
 public:
 
-  Registry(IDllWaylandClient &clientLibrary,
-           struct wl_display   *display,
+  Registry(struct wl_display   *display,
            IWaylandRegistration &registration);
   ~Registry();
 
@@ -86,23 +81,13 @@ public:
   
   template<typename Create>
   Create Bind(uint32_t name,
-              struct wl_interface **interface,
+              const struct wl_interface *interface,
               uint32_t version)
   {
-    Create object =
-      protocol::CreateWaylandObject<Create,
-                                    struct wl_registry *>(m_clientLibrary,
-                                                          m_registry,
-                                                          interface);
-
-    /* This looks a bit funky - but it is correct. The dll returns
-     * a ** to wl_interface when it is in fact just a pointer to
-     * the static variable, so we need to remove one indirection */
-    BindInternal(name,
-                 reinterpret_cast<struct wl_interface *>(interface)->name,
-                 version,
-                 object);
-    return object;
+    void *object = BindInternal(name,
+                                interface,
+                                version);
+    return reinterpret_cast<Create>(object);
   }
 
 private:
@@ -114,12 +99,10 @@ private:
   static void HandleRemoveGlobalCallback(void *, struct wl_registry *,
                                          uint32_t name);
 
-  void BindInternal(uint32_t name,
-                    const char *interface,
-                    uint32_t version,
-                    void *proxy);
+  void *BindInternal(uint32_t name,
+                     const struct wl_interface *interface,
+                     uint32_t version);
 
-  IDllWaylandClient &m_clientLibrary;
   struct wl_registry *m_registry;
   IWaylandRegistration &m_registration;
 

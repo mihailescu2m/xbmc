@@ -23,8 +23,6 @@ struct wl_compositor;
 struct wl_surface;
 struct wl_region;
 
-class IDllWaylandClient;
-
 namespace xbmc
 {
 namespace wayland
@@ -33,8 +31,7 @@ class Compositor
 {
 public:
 
-  Compositor(IDllWaylandClient &clientLibrary,
-             struct wl_compositor *compositor);
+  explicit Compositor(struct wl_compositor *compositor);
   ~Compositor();
 
   Compositor(const Compositor &) = delete;
@@ -54,7 +51,6 @@ public:
 
 private:
 
-  IDllWaylandClient &m_clientLibrary;
   struct wl_compositor *m_compositor;
 };
 }

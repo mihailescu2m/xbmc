@@ -20,9 +20,6 @@
  *
  */
 
-class IDllWaylandClient;
-class IDllWaylandEGL;
-
 struct wl_region;
 
 typedef struct wl_egl_window * EGLNativeWindowType;
@@ -50,9 +47,7 @@ public:
     SetXBMCSurface setXBMCSurface;
   };
 
-  XBMCSurface(IDllWaylandClient &clientLibrary,
-              IDllWaylandEGL &eglLibrary,
-              const EventInjector &eventInjector,
+  XBMCSurface(const EventInjector &eventInjector,
               Compositor &compositor,
               Shell &shell,
               uint32_t width,

@@ -23,10 +23,11 @@
 #define _GNU_SOURCE
 #endif
 
-#include "DllWaylandClient.h"
 #include "utils/log.h"
 
 #include "Wayland12EventQueueStrategy.h"
+
+#include <wayland-client.h>
 
 namespace xw12 = xbmc::wayland::version_12;
 
@@ -38,25 +39,22 @@ void Nothing()
 {
 }
 
-void Read(IDllWaylandClient &clientLibrary,
-          struct wl_display *display)
+void Read(struct wl_display *display)
 {
   /* If wl_display_prepare_read() returns a nonzero value it means
    * that we still have more events to dispatch. So let the main thread
    * dispatch all the pending events first before trying to read
    * more events from the pipe */
-  if ((*(clientLibrary.wl_display_prepare_read_proc()))(display) == 0)
-    (*(clientLibrary.wl_display_read_events_proc()))(display);
+  if (wl_display_prepare_read(display) == 0)
+    wl_display_read_events(display);
 }
 }
 
-xw12::EventQueueStrategy::EventQueueStrategy(IDllWaylandClient &clientLibrary,
-                                             struct wl_display *display) :
-  m_clientLibrary(clientLibrary),
+xw12::EventQueueStrategy::EventQueueStrategy(struct wl_display *display) :
   m_display(display),
-  m_thread(std::bind(Read, std::ref(m_clientLibrary), display),
+  m_thread(std::bind(Read, display),
            std::bind(Nothing),
-           m_clientLibrary.wl_display_get_fd(m_display))
+           wl_display_get_fd(m_display))
 {
 }
 
@@ -83,10 +81,10 @@ xw12::EventQueueStrategy::DispatchEventsFromMain()
    * are a particular culprit here), or where events that we need to
    * dispatch in order to keep going are never read.
    */
-  m_clientLibrary.wl_display_dispatch_pending(m_display);
+  wl_display_dispatch_pending(m_display);
   /* We perform the flush here and not in the reader thread
    * as it needs to come after eglSwapBuffers */
-  m_clientLibrary.wl_display_flush(m_display);
+  wl_display_flush(m_display);
 }
 
 void

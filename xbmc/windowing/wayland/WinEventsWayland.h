@@ -28,9 +28,6 @@ struct wl_display;
 struct wl_seat;
 struct wl_surface;
 
-class IDllWaylandClient;
-class IDllXKBCommon;
-
 namespace xbmc
 {
 namespace wayland
@@ -54,9 +51,7 @@ public:
   static void SetEventQueueStrategy(xbmc::wayland::events::IEventQueueStrategy &strategy);
   static void DestroyEventQueueStrategy();
 
-  static void SetWaylandSeat(IDllWaylandClient &clientLibrary,
-                             IDllXKBCommon &xkbCommonLibrary,
-                             struct wl_seat *seat);
+  static void SetWaylandSeat(struct wl_seat *seat);
   static void DestroyWaylandSeat();
   
   static void SetXBMCSurface(struct wl_surface *surf);

@@ -26,8 +26,6 @@ struct wl_surface;
 struct wl_callback;
 struct wl_region;
 
-class IDllWaylandClient;
-
 namespace xbmc
 {
 namespace wayland
@@ -36,8 +34,7 @@ class Surface
 {
 public:
 
-  Surface(IDllWaylandClient &clientLibrary,
-          struct wl_surface *surface);
+  explicit Surface(struct wl_surface *surface);
   ~Surface();
 
   Surface(const Surface &) = delete;
@@ -50,7 +47,6 @@ public:
 
 private:
 
-  IDllWaylandClient &m_clientLibrary;
   struct wl_surface *m_surface;
 };
 

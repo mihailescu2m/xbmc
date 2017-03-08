@@ -23,8 +23,6 @@
 
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "WaylandProtocol.h"
 #include "Pointer.h"
 
 namespace xw = xbmc::wayland;
@@ -38,23 +36,17 @@ const struct wl_pointer_listener xw::Pointer::m_listener =
   Pointer::HandleAxisCallback
 };
 
-xw::Pointer::Pointer(IDllWaylandClient &clientLibrary,
-                     struct wl_pointer *pointer,
+xw::Pointer::Pointer(struct wl_pointer *pointer,
                      IPointerReceiver &receiver) :
-  m_clientLibrary(clientLibrary),
   m_pointer(pointer),
   m_receiver(receiver)
 {
-  protocol::AddListenerOnWaylandObject(m_clientLibrary,
-                                       pointer,
-                                       &m_listener,
-                                       this);
+  wl_pointer_add_listener(pointer, &m_listener, this);
 }
 
 xw::Pointer::~Pointer()
 {
-  protocol::DestroyWaylandObject(m_clientLibrary,
-                                 m_pointer);
+  wl_pointer_destroy(m_pointer);
 }
 
 void xw::Pointer::SetCursor(uint32_t serial,
@@ -62,13 +54,7 @@ void xw::Pointer::SetCursor(uint32_t serial,
                             int32_t hotspot_x,
                             int32_t hotspot_y)
 {
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_pointer,
-                                      WL_POINTER_SET_CURSOR,
-                                      serial,
-                                      surface,
-                                      hotspot_x,
-                                      hotspot_y);
+  wl_pointer_set_cursor(m_pointer, serial, surface, hotspot_x, hotspot_y);
 }
 
 void xw::Pointer::HandleEnterCallback(void *data,

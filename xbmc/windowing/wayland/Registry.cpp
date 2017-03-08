@@ -19,8 +19,6 @@
  */
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "WaylandProtocol.h"
 #include "Registry.h"
 
 namespace xw = xbmc::wayland;
@@ -70,48 +68,30 @@ std::unique_ptr<xw::ExtraWaylandGlobals> xw::ExtraWaylandGlobals::m_instance;
  * in the interface and wants to bind to it. This is particularly
  * useful for testing purposes where custom objects on the compositor
  * side are used. */
-xw::Registry::Registry(IDllWaylandClient &clientLibrary,
-                       struct wl_display *display,
+xw::Registry::Registry(struct wl_display *display,
                        IWaylandRegistration &registration) :
-  m_clientLibrary(clientLibrary),
-  m_registry(protocol::CreateWaylandObject<struct wl_registry *,
-                                           struct wl_display *> (m_clientLibrary,
-                                                                 display,
-                                                                 m_clientLibrary.Get_wl_registry_interface())),
+  m_registry(wl_display_get_registry(display)),
   m_registration(registration)
 {
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      display,
-                                      WL_DISPLAY_GET_REGISTRY,
-                                      m_registry);
-  protocol::AddListenerOnWaylandObject(m_clientLibrary,
-                                       m_registry,
-                                       &m_listener,
-                                       reinterpret_cast<void *>(this));
+  wl_registry_add_listener(m_registry, &m_listener,
+                           reinterpret_cast<void *>(this));
 }
 
 xw::Registry::~Registry()
 {
-  protocol::DestroyWaylandObject(m_clientLibrary, m_registry);
+  wl_registry_destroy(m_registry);
 }
 
 /* Once a global becomes available, we immediately bind to it here
  * and then notify the injected listener interface that the global
  * is available on a named object. This allows that interface to
  * respond to the arrival of the new global how it wishes */
-void
+void *
 xw::Registry::BindInternal(uint32_t name,
-                           const char *interface,
-                           uint32_t version,
-                           void *proxy)
+                           const struct wl_interface *interface,
+                           uint32_t version)
 {
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_registry,
-                                      WL_REGISTRY_BIND,
-                                      name,
-                                      interface,
-                                      version,
-                                      proxy);
+  return wl_registry_bind(m_registry, name, interface, version);
 }
 
 void

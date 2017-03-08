@@ -19,8 +19,6 @@
  */
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "WaylandProtocol.h"
 #include "ShellSurface.h"
 
 namespace xw = xbmc::wayland;
@@ -32,20 +30,16 @@ const wl_shell_surface_listener xw::ShellSurface::m_listener =
   ShellSurface::HandlePopupDoneCallback
 };
 
-xw::ShellSurface::ShellSurface(IDllWaylandClient &clientLibrary,
-                               struct wl_shell_surface *shell_surface) :
-  m_clientLibrary(clientLibrary),
+xw::ShellSurface::ShellSurface(struct wl_shell_surface *shell_surface) :
   m_shellSurface(shell_surface)
 {
-  protocol::AddListenerOnWaylandObject(m_clientLibrary,
-                                       m_shellSurface,
-                                       &m_listener,
-                                       reinterpret_cast<void *>(this));
+  wl_shell_surface_add_listener(m_shellSurface, &m_listener,
+                                reinterpret_cast<void *>(this));
 }
 
 xw::ShellSurface::~ShellSurface()
 {
-  protocol::DestroyWaylandObject(m_clientLibrary, m_shellSurface);
+  wl_shell_surface_destroy(m_shellSurface);
 }
 
 struct wl_shell_surface *
@@ -59,12 +53,10 @@ xw::ShellSurface::SetFullscreen(enum wl_shell_surface_fullscreen_method method,
                                 uint32_t framerate,
                                 struct wl_output *output)
 {
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_shellSurface,
-                                      WL_SHELL_SURFACE_SET_FULLSCREEN,
-                                      method,
-                                      framerate,
-                                      output);
+  wl_shell_surface_set_fullscreen(m_shellSurface,
+                                  method,
+                                  framerate,
+                                  output);
 }
 
 void
@@ -97,10 +89,7 @@ xw::ShellSurface::HandlePopupDoneCallback(void *data,
 void
 xw::ShellSurface::HandlePing(uint32_t serial)
 {
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_shellSurface,
-                                      WL_SHELL_SURFACE_PONG,
-                                      serial);
+  wl_shell_surface_pong(m_shellSurface, serial);
 }
 
 void

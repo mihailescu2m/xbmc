@@ -23,8 +23,6 @@
 
 #include <wayland-client.h>
 
-class IDllWaylandClient;
-
 namespace xbmc
 {
 namespace wayland
@@ -40,8 +38,7 @@ public:
 
   typedef std::function<void(uint32_t)> Func;
 
-  Callback(IDllWaylandClient &clientLibrary,
-           struct wl_callback *callback,
+  Callback(struct wl_callback *callback,
            const Func &func);
   ~Callback();
 
@@ -58,7 +55,6 @@ public:
 
 private:
 
-  IDllWaylandClient &m_clientLibrary;
   struct wl_callback *m_callback;
   Func m_func;
 };

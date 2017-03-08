@@ -21,8 +21,6 @@
  */
 #include <wayland-client.h>
 
-class IDllWaylandClient;
-
 namespace xbmc
 {
 namespace wayland
@@ -44,8 +42,7 @@ class Seat
 {
 public:
 
-  Seat(IDllWaylandClient &,
-       struct wl_seat *,
+  Seat(struct wl_seat *,
        IInputReceiver &);
   ~Seat();
 
@@ -64,7 +61,6 @@ private:
 
   void HandleCapabilities(enum wl_seat_capability);
 
-  IDllWaylandClient &m_clientLibrary;
   struct wl_seat * m_seat;
   IInputReceiver &m_input;
 

@@ -20,8 +20,6 @@
  *
  */
 
-class IDllWaylandClient;
-
 struct wl_shell;
 struct wl_shell_surface;
 struct wl_surface;
@@ -34,8 +32,7 @@ class Shell
 {
 public:
 
-  Shell(IDllWaylandClient &clientLibrary,
-        struct wl_shell *shell);
+  explicit Shell(struct wl_shell *shell);
   ~Shell();
 
   Shell(const Shell &) = delete;
@@ -46,7 +43,6 @@ public:
 
 private:
 
-  IDllWaylandClient &m_clientLibrary;
   struct wl_shell *m_shell;
 };
 }

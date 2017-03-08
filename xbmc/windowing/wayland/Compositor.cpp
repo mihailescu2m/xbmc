@@ -19,23 +19,18 @@
  */
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "WaylandProtocol.h"
 #include "Compositor.h"
 
 namespace xw = xbmc::wayland;
 
-xw::Compositor::Compositor(IDllWaylandClient &clientLibrary,
-                           struct wl_compositor *compositor) :
-  m_clientLibrary(clientLibrary),
+xw::Compositor::Compositor(struct wl_compositor *compositor) :
   m_compositor(compositor)
 {
 }
 
 xw::Compositor::~Compositor()
 {
-  protocol::DestroyWaylandObject(m_clientLibrary,
-                                 m_compositor);
+  wl_compositor_destroy(m_compositor);
 }
 
 struct wl_compositor *
@@ -47,29 +42,11 @@ xw::Compositor::GetWlCompositor()
 struct wl_surface *
 xw::Compositor::CreateSurface() const
 {
-  struct wl_surface *surface =
-    protocol::CreateWaylandObject<struct wl_surface *,
-                                  struct wl_compositor *>(m_clientLibrary,
-                                                          m_compositor,
-                                                          m_clientLibrary.Get_wl_surface_interface());
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_compositor,
-                                      WL_COMPOSITOR_CREATE_SURFACE,
-                                      surface);
-  return surface;
+  return wl_compositor_create_surface(m_compositor);
 }
 
 struct wl_region *
 xw::Compositor::CreateRegion() const
 {
-  struct wl_region *region =
-    protocol::CreateWaylandObject<struct wl_region *,
-                                  struct wl_compositor *>(m_clientLibrary,
-                                                          m_compositor,
-                                                          m_clientLibrary.Get_wl_region_interface ());
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_compositor,
-                                      WL_COMPOSITOR_CREATE_REGION,
-                                      region);
-  return region;
+  return wl_compositor_create_region(m_compositor);
 }

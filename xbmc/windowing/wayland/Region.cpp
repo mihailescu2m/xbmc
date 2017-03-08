@@ -19,26 +19,18 @@
  */
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "WaylandProtocol.h"
 #include "Region.h"
 
 namespace xw = xbmc::wayland;
 
-xw::Region::Region(IDllWaylandClient &clientLibrary,
-                   struct wl_region *region) :
-  m_clientLibrary(clientLibrary),
+xw::Region::Region(struct wl_region *region) :
   m_region(region)
 {
 }
 
 xw::Region::~Region()
 {
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_region,
-                                      WL_REGION_DESTROY);
-  protocol::DestroyWaylandObject(m_clientLibrary,
-                                 m_region);
+  wl_region_destroy(m_region);
 }
 
 struct wl_region *
@@ -53,11 +45,5 @@ xw::Region::AddRectangle(int32_t x,
                          int32_t width,
                          int32_t height)
 {
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_region,
-                                      WL_REGION_ADD,
-                                      x,
-                                      y,
-                                      width,
-                                      height);
+  wl_region_add(m_region, x, y, width, height);
 }

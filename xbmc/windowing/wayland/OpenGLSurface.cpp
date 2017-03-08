@@ -20,25 +20,20 @@
 #include <wayland-client.h>
 #include <wayland-egl.h>
 
-#include "DllWaylandEgl.h"
 #include "OpenGLSurface.h"
 
 namespace xw = xbmc::wayland;
 
-xw::OpenGLSurface::OpenGLSurface(IDllWaylandEGL &eglLibrary,
-                                 struct wl_surface *surface,
+xw::OpenGLSurface::OpenGLSurface(struct wl_surface *surface,
                                  int width,
                                  int height) :
-  m_eglLibrary(eglLibrary),
-  m_eglWindow(m_eglLibrary.wl_egl_window_create(surface,
-                                                width,
-                                                height))
+  m_eglWindow(wl_egl_window_create(surface, width, height))
 {
 }
 
 xw::OpenGLSurface::~OpenGLSurface()
 {
-  m_eglLibrary.wl_egl_window_destroy(m_eglWindow);
+  wl_egl_window_destroy(m_eglWindow);
 }
 
 struct wl_egl_window *
@@ -56,9 +51,9 @@ xw::OpenGLSurface::GetEGLNativeWindow()
 void
 xw::OpenGLSurface::Resize(int width, int height)
 {
-  m_eglLibrary.wl_egl_window_resize(m_eglWindow,
-                                    width,
-                                    height,
-                                    0,
-                                    0);
+  wl_egl_window_resize(m_eglWindow,
+                       width,
+                       height,
+                       0,
+                       0);
 }

@@ -23,8 +23,6 @@
 
 #include <wayland-client.h>
 
-class IDllWaylandClient;
-
 namespace xbmc
 {
 namespace wayland
@@ -33,8 +31,7 @@ struct Output
 {
 public:
 
-  Output(IDllWaylandClient &,
-         struct wl_output *);
+  Output(struct wl_output *);
   ~Output();
 
   Output(const Output &) = delete;
@@ -131,8 +128,6 @@ private:
             int32_t refresh);
   void Scale(int32_t);
   void Done();
-
-  IDllWaylandClient &m_clientLibrary;
 
   struct wl_output *m_output;
 
