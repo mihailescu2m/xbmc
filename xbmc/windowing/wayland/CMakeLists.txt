@@ -1,5 +1,4 @@
 set(SOURCES Callback.cpp
-            Compositor.cpp
             Display.cpp
             EGLNativeTypeWayland.cpp
             EventLoop.cpp
