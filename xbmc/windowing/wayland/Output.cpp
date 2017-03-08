@@ -21,8 +21,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <wayland-client.h>
-
 #include "Output.h"
 
 namespace xw = xbmc::wayland;
@@ -43,17 +41,6 @@ xw::Output::Output(struct wl_output *output) :
 {
   wl_output_add_listener(m_output, &m_listener,
                          reinterpret_cast<void *>(this));
-}
-
-xw::Output::~Output()
-{
-  wl_output_destroy(m_output);
-}
-
-struct wl_output *
-xw::Output::GetWlOutput()
-{
-  return m_output;
 }
 
 /* It is a precondition violation to use CurrentMode() and
@@ -77,24 +64,6 @@ xw::Output::PreferredMode()
                            " server yet");
 
   return m_preferred;
-}
-
-const std::vector <xw::Output::ModeGeometry> &
-xw::Output::AllModes()
-{
-  return m_modes;
-}
-
-const xw::Output::PhysicalGeometry &
-xw::Output::Geometry()
-{
-  return m_geometry;
-}
-
-uint32_t
-xw::Output::ScaleFactor()
-{
-  return m_scaleFactor;
 }
 
 void
@@ -231,18 +200,4 @@ xw::Output::Mode(uint32_t flags,
     m_preferred = *update;
     m_preferredValid = true;
   }
-}
-
-void
-xw::Output::Done()
-{
-}
-
-/* This function is called whenever the scaling factor for this
- * output changes. It there for clients to support HiDPI displays,
- * although unused as of present */
-void
-xw::Output::Scale(int32_t factor)
-{
-  m_scaleFactor = factor;
 }
