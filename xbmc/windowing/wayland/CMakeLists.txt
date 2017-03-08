@@ -12,7 +12,6 @@ set(SOURCES Callback.cpp
             PollThread.cpp
             Registry.cpp
             Seat.cpp
-            Shell.cpp
             ShellSurface.cpp
             Surface.cpp
             Wayland12EventQueueStrategy.cpp

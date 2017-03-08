@@ -20,9 +20,7 @@
  *
  */
 
-struct wl_shell;
-struct wl_shell_surface;
-struct wl_surface;
+#include <wayland-client.h>
 
 namespace xbmc
 {
@@ -32,14 +30,25 @@ class Shell
 {
 public:
 
-  explicit Shell(struct wl_shell *shell);
-  ~Shell();
+  explicit Shell(struct wl_shell *shell) :
+    m_shell(shell)
+  {
+  }
+
+  ~Shell() {
+    wl_shell_destroy(m_shell);
+  }
 
   Shell(const Shell &) = delete;
   Shell &operator=(const Shell &) = delete;
 
-  struct wl_shell * GetWlShell();
-  struct wl_shell_surface * CreateShellSurface(struct wl_surface *);
+  struct wl_shell * GetWlShell() {
+    return m_shell;
+  }
+
+  struct wl_shell_surface * CreateShellSurface(struct wl_surface *surface) {
+    return wl_shell_get_shell_surface(m_shell, surface);
+  }
 
 private:
 
