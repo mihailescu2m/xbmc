@@ -44,7 +44,9 @@ public:
 
   Seat(struct wl_seat *,
        IInputReceiver &);
-  ~Seat();
+  ~Seat() {
+    wl_seat_destroy(m_seat);
+  }
 
   Seat(const Seat &) = delete;
   Seat &operator=(const Seat &) = delete;

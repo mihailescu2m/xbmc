@@ -21,8 +21,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <wayland-client.h>
-
 #include "Seat.h"
 
 namespace xw = xbmc::wayland;
@@ -41,11 +39,6 @@ xw::Seat::Seat(struct wl_seat *seat,
   m_currentCapabilities(static_cast<enum wl_seat_capability>(0))
 {
   wl_seat_add_listener(m_seat, &m_listener, reinterpret_cast<void *>(this));
-}
-
-xw::Seat::~Seat()
-{
-  wl_seat_destroy(m_seat);
 }
 
 void xw::Seat::HandleCapabilitiesCallback(void *data,
