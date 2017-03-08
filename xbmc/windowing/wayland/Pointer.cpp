@@ -21,8 +21,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <wayland-client.h>
-
 #include "Pointer.h"
 
 namespace xw = xbmc::wayland;
@@ -42,19 +40,6 @@ xw::Pointer::Pointer(struct wl_pointer *pointer,
   m_receiver(receiver)
 {
   wl_pointer_add_listener(pointer, &m_listener, this);
-}
-
-xw::Pointer::~Pointer()
-{
-  wl_pointer_destroy(m_pointer);
-}
-
-void xw::Pointer::SetCursor(uint32_t serial,
-                            struct wl_surface *surface,
-                            int32_t hotspot_x,
-                            int32_t hotspot_y)
-{
-  wl_pointer_set_cursor(m_pointer, serial, surface, hotspot_x, hotspot_y);
 }
 
 void xw::Pointer::HandleEnterCallback(void *data,
