@@ -49,6 +49,10 @@ extern "C" {
 #include <va/va_x11.h>
 #endif
 
+#ifdef HAVE_WAYLAND
+#include <va/va_wayland.h>
+#endif
+
 #include <va/va_vpp.h>
 #include <xf86drm.h>
 
@@ -179,6 +183,13 @@ void CVAAPIContext::SetVaDisplayForSystem()
     }
 
     m_display = vaGetDisplay(m_X11dpy);
+#endif
+  }
+  else if (win_system == WINDOW_SYSTEM_WAYLAND)
+  {
+#if HAVE_WAYLAND
+    auto *wl_dpy = g_Windowing.GetWaylandDisplay();
+    m_display = wl_dpy != NULL ? vaGetDisplayWl(wl_dpy) : NULL;
 #endif
   }
   else
