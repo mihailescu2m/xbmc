@@ -20,7 +20,7 @@
  *
  */
 
-struct wl_region;
+#include <wayland-client.h>
 
 namespace xbmc
 {
@@ -30,18 +30,28 @@ class Region
 {
 public:
 
-  explicit Region(struct wl_region *);
-  ~Region();
+  explicit Region(struct wl_region *region) :
+    m_region(region)
+  {
+  }
+
+  ~Region() {
+    wl_region_destroy(m_region);
+  }
 
   Region(const Region &) = delete;
   Region &operator=(const Region &) = delete;
   
-  struct wl_region * GetWlRegion();
+  struct wl_region * GetWlRegion() {
+    return m_region;
+  }
 
   void AddRectangle(int32_t x,
                     int32_t y,
                     int32_t width,
-                    int32_t height);
+                    int32_t height) {
+    wl_region_add(m_region, x, y, width, height);
+  }
 
 private:
 

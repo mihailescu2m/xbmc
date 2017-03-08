@@ -10,7 +10,6 @@ set(SOURCES Callback.cpp
             Pointer.cpp
             PointerProcessor.cpp
             PollThread.cpp
-            Region.cpp
             Registry.cpp
             Seat.cpp
             Shell.cpp
