@@ -37,6 +37,9 @@
 #if defined(TARGET_LINUX) && defined(HAS_LIBAMCODEC)
 #include "EGLNativeTypeAmlogic.h"
 #endif
+#ifdef HAVE_SUNXI_MALI
+  #include "EGLNativeTypeSunxiMali.h"
+#endif
 #include "EGLWrapper.h"
 
 #define CheckError() m_result = eglGetError(); if(m_result != EGL_SUCCESS) CLog::Log(LOGERROR, "EGL error in %s: %x",__FUNCTION__, m_result);
@@ -99,6 +102,8 @@ bool CEGLWrapper::Initialize(const std::string &implementation)
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation))
 #elif defined(HAS_IMXVPU)
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeIMX>(implementation))
+#elif defined(HAVE_SUNXI_MALI)
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeSunxiMali>(implementation))
 #elif defined(TARGET_LINUX) && defined(HAS_LIBAMCODEC)
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlogic>(implementation))
 #endif
