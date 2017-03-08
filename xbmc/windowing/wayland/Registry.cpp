@@ -17,7 +17,6 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
-#include <wayland-client.h>
 
 #include "Registry.h"
 
@@ -28,13 +27,6 @@ const struct wl_registry_listener xw::Registry::m_listener =
   Registry::HandleGlobalCallback,
   Registry::HandleRemoveGlobalCallback
 };
-
-/* Only one observer may be registered at a time */
-void
-xw::ExtraWaylandGlobals::SetHandler(const GlobalHandler &handler)
-{
-  m_handler = handler;
-}
 
 void
 xw::ExtraWaylandGlobals::NewGlobal(struct wl_registry *registry,
@@ -75,23 +67,6 @@ xw::Registry::Registry(struct wl_display *display,
 {
   wl_registry_add_listener(m_registry, &m_listener,
                            reinterpret_cast<void *>(this));
-}
-
-xw::Registry::~Registry()
-{
-  wl_registry_destroy(m_registry);
-}
-
-/* Once a global becomes available, we immediately bind to it here
- * and then notify the injected listener interface that the global
- * is available on a named object. This allows that interface to
- * respond to the arrival of the new global how it wishes */
-void *
-xw::Registry::BindInternal(uint32_t name,
-                           const struct wl_interface *interface,
-                           uint32_t version)
-{
-  return wl_registry_bind(m_registry, name, interface, version);
 }
 
 void
