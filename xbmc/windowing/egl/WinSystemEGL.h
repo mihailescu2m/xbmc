@@ -72,6 +72,11 @@ public:
 
   // videosync
   virtual std::unique_ptr<CVideoSync> GetVideoSync(void *clock) override;
+
+#ifdef HAVE_WAYLAND
+  struct wl_display *GetWaylandDisplay();
+#endif
+
 protected:
   virtual void  PresentRenderImpl(bool rendered);
   virtual void  SetVSyncImpl(bool enable);
