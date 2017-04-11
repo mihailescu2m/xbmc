@@ -517,6 +517,15 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/scripts/common/AddonHelpers.cmake
 configure_file(${CMAKE_SOURCE_DIR}/cmake/scripts/common/AddOptions.cmake
                ${CORE_BUILD_DIR}/lib/${APP_NAME_LC}/AddOptions.cmake COPYONLY)
 
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_PACKAGE_NAME "kodi")
+SET(CPACK_SET_DESTDIR TRUE)
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "memeka")
+SET(CPACK_PACKAGE_VERSION_MAJOR "18")
+SET(CPACK_PACKAGE_VERSION_MINOR "0")
+SET(CPACK_PACKAGE_VERSION_PATCH "alpha1")
+INCLUDE(CPack)
+
 # Status
 message(STATUS "#---- CONFIGURATION ----#")
 foreach(msg ${final_message})
