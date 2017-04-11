@@ -34,7 +34,9 @@
 #define glDeleteFramebuffersEXT glDeleteFramebuffers
 #define glFramebufferTexture2DEXT	glFramebufferTexture2D
 #define glCheckFramebufferStatusEXT	glCheckFramebufferStatus
+#ifndef GL_COLOR_ATTACHMENT0_EXT
 #define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0
+#endif
 #define GL_FRAMEBUFFER_COMPLETE_EXT	GL_FRAMEBUFFER_COMPLETE
 #endif
 

@@ -1,16 +1,15 @@
-if (NOT MIR_FOUND AND NOT X_FOUND)
-  if(OPENGLES_FOUND OR AML_FOUND OR IMX_FOUND OR MMAL_FOUND)
-    set(SOURCES EGLWrapper.cpp)
+if(OPENGLES_FOUND OR AML_FOUND OR MMAL_FOUND)
+  set(SOURCES EGLWrapper.cpp
+              EGLNativeTypeHybris.cpp)
+  set(HEADERS EGLNativeType.h
+              EGLQuirks.h
+              EGLWrapper.h
+              EGLNativeTypeHybris.h)
+endif()
 
-    set(HEADERS EGLNativeType.h
-                EGLQuirks.h
-                EGLWrapper.h)
-  endif()
-
-  if(OPENGLES_FOUND)
+if(OPENGLES_FOUND)
     list(APPEND SOURCES WinSystemEGL.cpp)
     list(APPEND HEADERS WinSystemEGL.h)
-  endif()
 endif()
 
 if(CORE_SYSTEM_NAME STREQUAL android)

@@ -42,6 +42,10 @@
     #include <OpenGL/glext.h>
   #endif
 #elif HAS_GLES == 2
+  // always define GL_GLEXT_PROTOTYPES before include gl headers
+  #if !defined(GL_GLEXT_PROTOTYPES)
+    #define GL_GLEXT_PROTOTYPES
+  #endif
   #if defined(TARGET_DARWIN)
     #include <OpenGLES/ES2/gl.h>
     #include <OpenGLES/ES2/glext.h>
