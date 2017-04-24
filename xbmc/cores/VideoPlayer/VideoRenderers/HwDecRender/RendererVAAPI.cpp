@@ -80,12 +80,12 @@ CRenderInfo CRendererVAAPI::GetRenderInfo()
 
 bool CRendererVAAPI::Supports(ERENDERFEATURE feature)
 {
-  return CLinuxRendererGL::Supports(feature);
+  return CRendererVAAPIBase::Supports(feature);
 }
 
 bool CRendererVAAPI::Supports(ESCALINGMETHOD method)
 {
-  return CLinuxRendererGL::Supports(method);
+  return CRendererVAAPIBase::Supports(method);
 }
 
 bool CRendererVAAPI::LoadShadersHook()
