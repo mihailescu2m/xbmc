@@ -17,7 +17,6 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
-#include <wayland-client.h>
 
 #include "Callback.h"
 
@@ -35,17 +34,6 @@ xw::Callback::Callback(struct wl_callback *callback,
 {
   wl_callback_add_listener(m_callback, &m_listener,
                            reinterpret_cast<void *>(this));
-}
-
-xw::Callback::~Callback()
-{
-  wl_callback_destroy(m_callback);
-}
-
-struct wl_callback *
-xw::Callback::GetWlCallback()
-{
-  return m_callback;
 }
 
 void

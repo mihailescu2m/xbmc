@@ -40,12 +40,16 @@ public:
 
   Callback(struct wl_callback *callback,
            const Func &func);
-  ~Callback();
+  ~Callback() {
+    wl_callback_destroy(m_callback);
+  }
 
   Callback(const Callback &) = delete;
   Callback &operator=(const Callback &) = delete;
 
-  struct wl_callback * GetWlCallback();
+  struct wl_callback * GetWlCallback() {
+    return m_callback;
+  }
 
   static const struct wl_callback_listener m_listener;
 
