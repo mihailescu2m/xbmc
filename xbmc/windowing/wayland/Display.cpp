@@ -23,17 +23,9 @@
 
 #include <cstdlib>
 
-#include <wayland-client.h>
-
 #include "Display.h"
 
 namespace xw = xbmc::wayland;
-
-void
-xw::WaylandDisplayListener::SetHandler(const Handler &handler)
-{
-  m_handler = handler;
-}
 
 void
 xw::WaylandDisplayListener::DisplayAvailable(Display &display)
@@ -75,28 +67,4 @@ xw::Display::~Display()
 {
   wl_display_flush(m_display);
   wl_display_disconnect(m_display);
-}
-
-struct wl_display *
-xw::Display::GetWlDisplay()
-{
-  return m_display;
-}
-
-EGLNativeDisplayType *
-xw::Display::GetEGLNativeDisplay()
-{
-  return &m_display;
-}
-
-/* Create a sync callback object. This can be wrapped in an
- * xbmc::wayland::Callback object to call an arbitrary function
- * as soon as the display has finished processing all commands.
- * 
- * This does not block until a synchronization is complete -
- * consider using a function like WaitForSynchronize to do that */
-struct wl_callback *
-xw::Display::Sync()
-{
-  return wl_display_sync(m_display);
 }
