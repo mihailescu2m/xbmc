@@ -20,8 +20,6 @@
  *
  */
 
-class IDllWaylandEGL;
-
 struct wl_surface;
 struct wl_egl_window;
 
@@ -35,8 +33,7 @@ class OpenGLSurface
 {
 public:
 
-  OpenGLSurface(IDllWaylandEGL &eglLibrary,
-                struct wl_surface *surface,
+  OpenGLSurface(struct wl_surface *surface,
                 int32_t width,
                 int32_t height);
   ~OpenGLSurface();
@@ -50,7 +47,6 @@ public:
 
 private:
 
-  IDllWaylandEGL &m_eglLibrary;
   struct wl_egl_window *m_eglWindow;
 };
 }

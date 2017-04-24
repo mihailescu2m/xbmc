@@ -21,8 +21,6 @@
  */
 #include <wayland-client.h>
 
-class IDllWaylandClient;
-
 namespace xbmc
 {
 namespace wayland
@@ -31,8 +29,7 @@ class ShellSurface
 {
 public:
 
-  ShellSurface(IDllWaylandClient &clientLibrary,
-               struct wl_shell_surface *shellSurface);
+  explicit ShellSurface(struct wl_shell_surface *shellSurface);
   ~ShellSurface();
 
   ShellSurface(const ShellSurface &) = delete;
@@ -64,7 +61,6 @@ private:
                        int32_t height);
   void HandlePopupDone();
 
-  IDllWaylandClient &m_clientLibrary;
   struct wl_shell_surface *m_shellSurface;
 };
 }

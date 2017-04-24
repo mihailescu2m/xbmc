@@ -28,21 +28,18 @@ struct xkb_state;
 typedef uint32_t xkb_mod_index_t;
 typedef uint32_t xkb_mask_index_t;
 
-class IDllXKBCommon;
-
 class CXKBKeymap : public ILinuxKeymap
 {
 public:
 
-  CXKBKeymap(IDllXKBCommon &m_xkbCommonLibrary,
-             struct xkb_keymap *keymap);
+  explicit CXKBKeymap(struct xkb_keymap *keymap);
   ~CXKBKeymap();
 
-  static struct xkb_context * CreateXKBContext(IDllXKBCommon &xkbCommonLibrary);
+  static struct xkb_context * CreateXKBContext();
   /* ReceiveXKBKeymapFromSharedMemory does not own the file descriptor, as such it takes a const reference to it */ 
-  static struct xkb_keymap * ReceiveXKBKeymapFromSharedMemory(IDllXKBCommon &xkbCommonLibrary, struct xkb_context *, const int &fd, uint32_t size);
-  static struct xkb_state * CreateXKBStateFromKeymap(IDllXKBCommon &xkbCommonLibrary, struct xkb_keymap *keymap);
-  static struct xkb_keymap * CreateXKBKeymapFromNames(IDllXKBCommon &xkbCommonLibrary, struct xkb_context *context,  const std::string &rules, const std::string &model, const std::string &layout, const std::string &variant, const std::string &options);
+  static struct xkb_keymap * ReceiveXKBKeymapFromSharedMemory(struct xkb_context *, const int &fd, uint32_t size);
+  static struct xkb_state * CreateXKBStateFromKeymap(struct xkb_keymap *keymap);
+  static struct xkb_keymap * CreateXKBKeymapFromNames(struct xkb_context *context,  const std::string &rules, const std::string &model, const std::string &layout, const std::string &variant, const std::string &options);
 private:
 
   uint32_t KeysymForKeycode(uint32_t code) const;
@@ -53,8 +50,6 @@ private:
   uint32_t CurrentModifiers() const;
   uint32_t XBMCKeysymForKeycode(uint32_t code) const;
   uint32_t ActiveXBMCModifiers() const;
-
-  IDllXKBCommon &m_xkbCommonLibrary;
 
   struct xkb_keymap *m_keymap;
   struct xkb_state *m_state;

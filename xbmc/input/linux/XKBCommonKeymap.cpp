@@ -29,17 +29,16 @@
 
 #include "Application.h"
 
-#include "windowing/wayland/DllXKBCommon.h"
 #include "XKBCommonKeymap.h"
 #include "Util.h"
 
 struct xkb_context *
-CXKBKeymap::CreateXKBContext(IDllXKBCommon &xkbCommonLibrary)
+CXKBKeymap::CreateXKBContext()
 {
   enum xkb_context_flags flags =
     static_cast<enum xkb_context_flags>(0);
 
-  struct xkb_context *context = xkbCommonLibrary.xkb_context_new(flags);
+  struct xkb_context *context = xkb_context_new(flags);
   
   /* It is the object who wants to create an XKBKeymap and not
    * XKBKeymap itself that owns the xkb_context. The
@@ -73,7 +72,7 @@ CXKBKeymap::CreateXKBContext(IDllXKBCommon &xkbCommonLibrary)
  * from this function.
  */
 struct xkb_keymap *
-CXKBKeymap::ReceiveXKBKeymapFromSharedMemory(IDllXKBCommon &xkbCommonLibrary, struct xkb_context *context, const int &fd, uint32_t size)
+CXKBKeymap::ReceiveXKBKeymapFromSharedMemory(struct xkb_context *context, const int &fd, uint32_t size)
 {
   const char *keymapString = static_cast<const char *>(mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0));
   if (keymapString == MAP_FAILED)
@@ -94,7 +93,7 @@ CXKBKeymap::ReceiveXKBKeymapFromSharedMemory(IDllXKBCommon &xkbCommonLibrary, st
   enum xkb_keymap_compile_flags flags =
     static_cast<enum xkb_keymap_compile_flags>(0);
   struct xkb_keymap *keymap =
-    xkbCommonLibrary.xkb_keymap_new_from_string(context, keymapString, XKB_KEYMAP_FORMAT_TEXT_V1, flags);
+    xkb_keymap_new_from_string(context, keymapString, XKB_KEYMAP_FORMAT_TEXT_V1, flags);
 
   /* Failure to compile a keymap is a runtime error and the caller
    * should handle it */
@@ -105,7 +104,7 @@ CXKBKeymap::ReceiveXKBKeymapFromSharedMemory(IDllXKBCommon &xkbCommonLibrary, st
 }
 
 struct xkb_keymap *
-CXKBKeymap::CreateXKBKeymapFromNames(IDllXKBCommon &xkbCommonLibrary, struct xkb_context *context, const std::string &rules, const std::string &model, const std::string &layout, const std::string &variant, const std::string &options)
+CXKBKeymap::CreateXKBKeymapFromNames(struct xkb_context *context, const std::string &rules, const std::string &model, const std::string &layout, const std::string &variant, const std::string &options)
 {
   enum xkb_keymap_compile_flags flags =
     static_cast<enum xkb_keymap_compile_flags>(0);
@@ -120,7 +119,7 @@ CXKBKeymap::CreateXKBKeymapFromNames(IDllXKBCommon &xkbCommonLibrary, struct xkb
   };
   
   struct xkb_keymap *keymap =
-    xkbCommonLibrary.xkb_keymap_new_from_names(context, &names, flags);
+    xkb_keymap_new_from_names(context, &names, flags);
 
   if (!keymap)
     throw std::runtime_error("Failed to compile keymap");
@@ -129,9 +128,9 @@ CXKBKeymap::CreateXKBKeymapFromNames(IDllXKBCommon &xkbCommonLibrary, struct xkb
 }
 
 struct xkb_state *
-CXKBKeymap::CreateXKBStateFromKeymap(IDllXKBCommon &xkbCommonLibrary, struct xkb_keymap *keymap)
+CXKBKeymap::CreateXKBStateFromKeymap(struct xkb_keymap *keymap)
 {
-  struct xkb_state *state = xkbCommonLibrary.xkb_state_new(keymap);
+  struct xkb_state *state = xkb_state_new(keymap);
 
   if (!state)
     throw std::runtime_error("Failed to create keyboard state");
@@ -151,45 +150,29 @@ CXKBKeymap::CreateXKBStateFromKeymap(IDllXKBCommon &xkbCommonLibrary, struct xkb
  * PRESSED MODIFIERS. Undefined behaviour will result if it is not
  * kept up to date.
  */
-CXKBKeymap::CXKBKeymap(IDllXKBCommon &xkbCommonLibrary,
-                       struct xkb_keymap *keymap) :
-  m_xkbCommonLibrary(xkbCommonLibrary),
+CXKBKeymap::CXKBKeymap(struct xkb_keymap *keymap) :
   m_keymap(keymap),
-  m_state(CreateXKBStateFromKeymap(xkbCommonLibrary,
-                                   keymap)),
-  m_internalLeftControlIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                         XKB_MOD_NAME_CTRL)),
-  m_internalLeftShiftIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                       XKB_MOD_NAME_SHIFT)),
-  m_internalLeftSuperIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                       XKB_MOD_NAME_LOGO)),
-  m_internalLeftAltIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                     XKB_MOD_NAME_ALT)),
-  m_internalLeftMetaIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                      "Meta")),
-  m_internalRightControlIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                          "RControl")),
-  m_internalRightShiftIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                        "RShift")),
-  m_internalRightSuperIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                        "Hyper")),
-  m_internalRightAltIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                      "AltGr")),
-  m_internalRightMetaIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                       "Meta")),
-  m_internalCapsLockIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                      XKB_LED_NAME_CAPS)),
-  m_internalNumLockIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                     XKB_LED_NAME_NUM)),
-  m_internalModeIndex(m_xkbCommonLibrary.xkb_keymap_mod_get_index(m_keymap,
-                                                                  XKB_LED_NAME_SCROLL))
+  m_state(CreateXKBStateFromKeymap(keymap)),
+  m_internalLeftControlIndex(xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_CTRL)),
+  m_internalLeftShiftIndex(xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_SHIFT)),
+  m_internalLeftSuperIndex(xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_LOGO)),
+  m_internalLeftAltIndex(xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_ALT)),
+  m_internalLeftMetaIndex(xkb_keymap_mod_get_index(m_keymap, "Meta")),
+  m_internalRightControlIndex(xkb_keymap_mod_get_index(m_keymap, "RControl")),
+  m_internalRightShiftIndex(xkb_keymap_mod_get_index(m_keymap, "RShift")),
+  m_internalRightSuperIndex(xkb_keymap_mod_get_index(m_keymap, "Hyper")),
+  m_internalRightAltIndex(xkb_keymap_mod_get_index(m_keymap, "AltGr")),
+  m_internalRightMetaIndex(xkb_keymap_mod_get_index(m_keymap, "Meta")),
+  m_internalCapsLockIndex(xkb_keymap_mod_get_index(m_keymap, XKB_LED_NAME_CAPS)),
+  m_internalNumLockIndex(xkb_keymap_mod_get_index(m_keymap, XKB_LED_NAME_NUM)),
+  m_internalModeIndex(xkb_keymap_mod_get_index(m_keymap, XKB_LED_NAME_SCROLL))
 {
 }
 
 CXKBKeymap::~CXKBKeymap()
 {
-  m_xkbCommonLibrary.xkb_state_unref(m_state);
-  m_xkbCommonLibrary.xkb_keymap_unref(m_keymap);
+  xkb_state_unref(m_state);
+  xkb_keymap_unref(m_keymap);
 }
 
 uint32_t
@@ -204,7 +187,7 @@ CXKBKeymap::KeysymForKeycode(uint32_t code) const
    * a runtime_error which the client needs to handle.
    * 
    * Codes sent generally have an offset of 8 */
-  numSyms = m_xkbCommonLibrary.xkb_state_key_get_syms(m_state, code + 8, &syms);
+  numSyms = xkb_state_key_get_syms(m_state, code + 8, &syms);
 
   if (numSyms == 1)
     return static_cast<uint32_t>(syms[0]);
@@ -227,8 +210,7 @@ uint32_t CXKBKeymap::CurrentModifiers() const
     static_cast <xkb_state_component>(XKB_STATE_DEPRESSED |
                                       XKB_STATE_LATCHED |
                                       XKB_STATE_LOCKED);
-  xkb_mod_mask_t mask = m_xkbCommonLibrary.xkb_state_serialize_mods(m_state,
-                                                                    components);
+  xkb_mod_mask_t mask = xkb_state_serialize_mods(m_state, components);
   return mask;
 }
 
@@ -238,7 +220,7 @@ uint32_t CXKBKeymap::CurrentModifiers() const
  * THIS FUNCTION MUST BE CALLED WHENEVER MODIFIERS CHANGE */
 void CXKBKeymap::UpdateMask(uint32_t depressed, uint32_t latched, uint32_t locked, uint32_t group)
 {
-  m_xkbCommonLibrary.xkb_state_update_mask(m_state, depressed, latched, locked, 0, 0, group);
+  xkb_state_update_mask(m_state, depressed, latched, locked, 0, 0, group);
 }
 
 uint32_t CXKBKeymap::ActiveXBMCModifiers() const
