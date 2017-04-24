@@ -22,9 +22,7 @@
 #include <functional>
 #include <memory>
 
-struct wl_surface;
-struct wl_callback;
-struct wl_region;
+#include <wayland-client.h>
 
 namespace xbmc
 {
@@ -35,15 +33,28 @@ class Surface
 public:
 
   explicit Surface(struct wl_surface *surface);
-  ~Surface();
+  ~Surface() {
+    wl_surface_destroy(m_surface);
+  }
 
   Surface(const Surface &) = delete;
   Surface &operator=(const Surface &) = delete;
 
-  struct wl_surface * GetWlSurface();
-  struct wl_callback * CreateFrameCallback();
-  void SetOpaqueRegion(struct wl_region *region);
-  void Commit();
+  struct wl_surface * GetWlSurface() {
+    return m_surface;
+  }
+
+  struct wl_callback * CreateFrameCallback() {
+    return wl_surface_frame(m_surface);
+  }
+
+  void SetOpaqueRegion(struct wl_region *region) {
+    wl_surface_set_opaque_region(m_surface, region);
+  }
+
+  void Commit() {
+    wl_surface_commit(m_surface);
+  }
 
 private:
 
@@ -61,7 +72,10 @@ public:
 
   typedef std::function<void(Surface &)> Handler;
   
-  void SetHandler(const Handler &);
+  void SetHandler(const Handler &handler) {
+    m_handler = handler;
+  }
+
   void SurfaceCreated(Surface &);
 
   static WaylandSurfaceListener & GetInstance();
