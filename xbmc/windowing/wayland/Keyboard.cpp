@@ -23,7 +23,6 @@
 
 #include "utils/ScopeExit.hxx"
 
-#include <wayland-client.h>
 #include <xkbcommon/xkbcommon.h>
 
 #include "input/linux/XKBCommonKeymap.h"
@@ -62,11 +61,6 @@ xw::Keyboard::Keyboard(struct wl_keyboard *keyboard,
   m_reciever(receiver)
 {
   wl_keyboard_add_listener(m_keyboard, &m_listener, this);
-}
-
-xw::Keyboard::~Keyboard()
-{
-  wl_keyboard_destroy(m_keyboard);
 }
 
 void xw::Keyboard::HandleKeymapCallback(void *data,
