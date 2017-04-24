@@ -19,6 +19,9 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
+
+#include <wayland-client.h>
+
 #include <functional>
 #include <memory>
 
@@ -41,9 +44,24 @@ class Display
     Display(const Display &) = delete;
     Display &operator=(const Display &) = delete;
 
-    struct wl_display * GetWlDisplay();
-    EGLNativeDisplayType* GetEGLNativeDisplay();
-    struct wl_callback * Sync();
+    struct wl_display * GetWlDisplay() {
+      return m_display;
+    }
+
+    EGLNativeDisplayType* GetEGLNativeDisplay() {
+      return &m_display;
+    }
+
+    /* Create a sync callback object. This can be wrapped in an
+     * xbmc::wayland::Callback object to call an arbitrary function
+     * as soon as the display has finished processing all commands.
+     *
+     * This does not block until a synchronization is complete -
+     * consider using a function like WaitForSynchronize to do that
+     */
+    struct wl_callback * Sync() {
+      return wl_display_sync(m_display);
+    }
 
   private:
 
@@ -59,7 +77,10 @@ public:
 
   typedef std::function<void(Display &)> Handler;
   
-  void SetHandler(const Handler &);
+  void SetHandler(const Handler &handler) {
+    m_handler = handler;
+  }
+
   void DisplayAvailable(Display &);
 
   static WaylandDisplayListener & GetInstance();
