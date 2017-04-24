@@ -41,7 +41,10 @@ public:
                              const char *,
                              uint32_t)> GlobalHandler;
   
-  void SetHandler(const GlobalHandler &);
+  void SetHandler(const GlobalHandler &handler) {
+    m_handler = handler;
+  }
+
   void NewGlobal(struct wl_registry *,
                  uint32_t,
                  const char *,
@@ -72,7 +75,9 @@ public:
 
   Registry(struct wl_display   *display,
            IWaylandRegistration &registration);
-  ~Registry();
+  ~Registry() {
+    wl_registry_destroy(m_registry);
+  }
 
   Registry(const Registry &) = delete;
   Registry &operator=(const Registry &) = delete;
@@ -99,9 +104,15 @@ private:
   static void HandleRemoveGlobalCallback(void *, struct wl_registry *,
                                          uint32_t name);
 
+  /* Once a global becomes available, we immediately bind to it here
+   * and then notify the injected listener interface that the global
+   * is available on a named object. This allows that interface to
+   * respond to the arrival of the new global how it wishes */
   void *BindInternal(uint32_t name,
                      const struct wl_interface *interface,
-                     uint32_t version);
+                     uint32_t version) {
+    return wl_registry_bind(m_registry, name, interface, version);
+  }
 
   struct wl_registry *m_registry;
   IWaylandRegistration &m_registration;
