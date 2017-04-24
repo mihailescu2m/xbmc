@@ -32,6 +32,8 @@
 #include "IGUIContainer.h"
 #include "utils/Stopwatch.h"
 
+#include <list>
+
 /*!
  \ingroup controls
  \brief
@@ -153,8 +155,8 @@ protected:
 
   int m_pageControl;
 
-  std::vector<CGUIListItemLayout> m_layouts;
-  std::vector<CGUIListItemLayout> m_focusedLayouts;
+  std::list<CGUIListItemLayout> m_layouts;
+  std::list<CGUIListItemLayout> m_focusedLayouts;
 
   CGUIListItemLayout *m_layout;
   CGUIListItemLayout *m_focusedLayout;
