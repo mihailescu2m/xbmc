@@ -57,7 +57,9 @@ public:
 
   Pointer(struct wl_pointer *,
           IPointerReceiver &);
-  ~Pointer();
+  ~Pointer() {
+    wl_pointer_destroy(m_pointer);
+  }
 
   struct wl_pointer * GetWlPointer();
 
@@ -67,7 +69,9 @@ public:
   void SetCursor(uint32_t serial,
                  struct wl_surface *surface,
                  int32_t hotspot_x,
-                 int32_t hotspot_y);
+                 int32_t hotspot_y) {
+    wl_pointer_set_cursor(m_pointer, serial, surface, hotspot_x, hotspot_y);
+  }
 
   static void HandleEnterCallback(void *,
                                   struct wl_pointer *,
