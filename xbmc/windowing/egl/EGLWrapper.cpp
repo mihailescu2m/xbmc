@@ -22,6 +22,9 @@
 #ifdef HAS_EGL
 #include "utils/log.h"
 #include <assert.h>
+#if defined(HAVE_WAYLAND)
+  #include "EGLNativeTypeWayland.h"
+#endif
 #if defined(TARGET_ANDROID)
   #include "EGLNativeTypeAndroid.h"
   #if defined(HAS_LIBAMCODEC)
@@ -99,6 +102,8 @@ bool CEGLWrapper::Initialize(const std::string &implementation)
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlAndroid>(implementation))
 #elif defined(TARGET_ANDROID)
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAndroid>(implementation))
+#elif defined(HAVE_WAYLAND)
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeWayland>(implementation))
 #elif defined(TARGET_RASPBERRY_PI)
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation))
 #elif defined(HAS_IMXVPU)
@@ -299,6 +304,11 @@ bool CEGLWrapper::CreateSurface(EGLDisplay display, EGLConfig config, EGLSurface
   *surface = eglCreateWindowSurface(display, config, *nativeWindow, NULL);
   CheckError();
   return *surface != EGL_NO_SURFACE;
+}
+
+bool CEGLWrapper::TrustSurfaceSize()
+{
+  return !(m_nativeTypes->GetQuirks() & EGL_QUIRK_DONT_TRUST_SURFACE_SIZE);
 }
 
 bool CEGLWrapper::GetSurfaceSize(EGLDisplay display, EGLSurface surface, EGLint *width, EGLint *height)
