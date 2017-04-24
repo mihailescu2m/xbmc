@@ -22,8 +22,6 @@
 #include <functional>
 #include <memory>
 
-class IDllWaylandClient;
-
 struct wl_display;
 struct wl_callback;
 
@@ -37,7 +35,7 @@ class Display
 {
   public:
 
-    Display(IDllWaylandClient &clientLibrary);
+    Display();
     ~Display();
 
     Display(const Display &) = delete;
@@ -49,7 +47,6 @@ class Display
 
   private:
 
-    IDllWaylandClient &m_clientLibrary;
     struct wl_display *m_display;
 };
 

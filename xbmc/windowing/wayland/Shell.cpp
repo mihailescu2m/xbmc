@@ -19,23 +19,18 @@
  */
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "WaylandProtocol.h"
 #include "Shell.h"
 
 namespace xw = xbmc::wayland;
 
-xw::Shell::Shell(IDllWaylandClient &clientLibrary,
-                 struct wl_shell *shell) :
-  m_clientLibrary(clientLibrary),
+xw::Shell::Shell(struct wl_shell *shell) :
   m_shell(shell)
 {
 }
 
 xw::Shell::~Shell()
 {
-  protocol::DestroyWaylandObject(m_clientLibrary,
-                                 m_shell);
+  wl_shell_destroy(m_shell);
 }
 
 struct wl_shell *
@@ -47,15 +42,5 @@ xw::Shell::GetWlShell()
 struct wl_shell_surface *
 xw::Shell::CreateShellSurface(struct wl_surface *surface)
 {
-  struct wl_shell_surface *shellSurface =
-    protocol::CreateWaylandObject<struct wl_shell_surface *,
-                                  struct wl_shell *>(m_clientLibrary,
-                                                     m_shell,
-                                                     m_clientLibrary.Get_wl_shell_surface_interface ());
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_shell,
-                                      WL_SHELL_GET_SHELL_SURFACE,
-                                      shellSurface,
-                                      surface);
-  return shellSurface;
+  return wl_shell_get_shell_surface(m_shell, surface);
 }

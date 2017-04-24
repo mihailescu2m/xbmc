@@ -24,10 +24,8 @@
 #include "utils/ScopeExit.hxx"
 
 #include <wayland-client.h>
+#include <xkbcommon/xkbcommon.h>
 
-#include "DllWaylandClient.h"
-#include "DllXKBCommon.h"
-#include "WaylandProtocol.h"
 #include "input/linux/XKBCommonKeymap.h"
 #include "Keyboard.h"
 
@@ -44,40 +42,31 @@ const struct wl_keyboard_listener xw::Keyboard::m_listener =
 
 namespace
 {
-void DestroyXKBCommonContext(struct xkb_context *context,
-                             IDllXKBCommon &xkbCommonLibrary)
+void DestroyXKBCommonContext(struct xkb_context *context)
 {
-  xkbCommonLibrary.xkb_context_unref(context);
+  xkb_context_unref(context);
 }
 }
 
 void
 xw::Keyboard::XkbContextDeleter::operator()(struct xkb_context *c)
 {
-  DestroyXKBCommonContext(c, m_xkbCommonLibrary);
+  DestroyXKBCommonContext(c);
 }
 
-xw::Keyboard::Keyboard(IDllWaylandClient &clientLibrary,
-                       IDllXKBCommon &xkbCommonLibrary,
-                       struct wl_keyboard *keyboard,
+xw::Keyboard::Keyboard(struct wl_keyboard *keyboard,
                        IKeyboardReceiver &receiver) :
-  m_clientLibrary(clientLibrary),
-  m_xkbCommonLibrary(xkbCommonLibrary),
-  m_xkbCommonContext(CXKBKeymap::CreateXKBContext(m_xkbCommonLibrary),
-                     XkbContextDeleter(xkbCommonLibrary)),
+  m_xkbCommonContext(CXKBKeymap::CreateXKBContext(),
+                     XkbContextDeleter()),
   m_keyboard(keyboard),
   m_reciever(receiver)
 {
-  protocol::AddListenerOnWaylandObject(m_clientLibrary,
-                                       m_keyboard,
-                                       &m_listener,
-                                       this);
+  wl_keyboard_add_listener(m_keyboard, &m_listener, this);
 }
 
 xw::Keyboard::~Keyboard()
 {
-  protocol::DestroyWaylandObject(m_clientLibrary,
-                                 m_keyboard);
+  wl_keyboard_destroy(m_keyboard);
 }
 
 void xw::Keyboard::HandleKeymapCallback(void *data,
@@ -166,20 +155,17 @@ void xw::Keyboard::HandleKeymap(uint32_t format,
   
   /* Either throws or returns a valid xkb_keymap * */
   struct xkb_keymap *keymap =
-    CXKBKeymap::ReceiveXKBKeymapFromSharedMemory(m_xkbCommonLibrary,
-                                                 m_xkbCommonContext.get(),
+    CXKBKeymap::ReceiveXKBKeymapFromSharedMemory(m_xkbCommonContext.get(),
                                                  fd,
                                                  size);
 
-  auto &xkbCommonLibrary = m_xkbCommonLibrary;
-  AtScopeExit(&xkbCommonLibrary, &successfullyCreatedKeyboard, keymap)
+  AtScopeExit(&successfullyCreatedKeyboard, keymap)
   {
     if (!successfullyCreatedKeyboard)
-      xkbCommonLibrary.xkb_keymap_unref(keymap);
+      xkb_keymap_unref(keymap);
   };
 
-  m_keymap.reset(new CXKBKeymap(m_xkbCommonLibrary,
-                                keymap));
+  m_keymap.reset(new CXKBKeymap(keymap));
   
   successfullyCreatedKeyboard = true;
 

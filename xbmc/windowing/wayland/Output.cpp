@@ -23,8 +23,6 @@
 
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "WaylandProtocol.h"
 #include "Output.h"
 
 namespace xw = xbmc::wayland;
@@ -37,24 +35,19 @@ const wl_output_listener xw::Output::m_listener =
   Output::ModeCallback
 };
 
-xw::Output::Output(IDllWaylandClient &clientLibrary,
-                   struct wl_output *output) :
-  m_clientLibrary(clientLibrary),
+xw::Output::Output(struct wl_output *output) :
   m_output(output),
   m_scaleFactor(1.0),
   m_currentValid(false),
   m_preferredValid(false)
 {
-  protocol::AddListenerOnWaylandObject(m_clientLibrary,
-                                       m_output,
-                                       &m_listener,
-                                       reinterpret_cast<void *>(this));
+  wl_output_add_listener(m_output, &m_listener,
+                         reinterpret_cast<void *>(this));
 }
 
 xw::Output::~Output()
 {
-  protocol::DestroyWaylandObject(m_clientLibrary,
-                                 m_output);
+  wl_output_destroy(m_output);
 }
 
 struct wl_output *

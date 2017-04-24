@@ -25,9 +25,6 @@
 
 #include "input/linux/Keymap.h"
 
-class IDllWaylandClient;
-class IDllXKBCommon;
-
 struct xkb_context;
 
 namespace xbmc
@@ -76,9 +73,7 @@ class Keyboard
 {
 public:
 
-  Keyboard(IDllWaylandClient &,
-           IDllXKBCommon &,
-           struct wl_keyboard *,
+  Keyboard(struct wl_keyboard *,
            IKeyboardReceiver &);
   ~Keyboard();
 
@@ -137,15 +132,7 @@ private:
 
   static const struct wl_keyboard_listener m_listener;
 
-  IDllWaylandClient &m_clientLibrary;
-  IDllXKBCommon &m_xkbCommonLibrary;
-
   struct XkbContextDeleter {
-    IDllXKBCommon &m_xkbCommonLibrary;
-
-    constexpr explicit XkbContextDeleter(IDllXKBCommon &xkbCommonLibrary)
-      :m_xkbCommonLibrary(xkbCommonLibrary) {}
-
     void operator()(struct xkb_context *c);
   };
   

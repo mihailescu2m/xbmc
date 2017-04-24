@@ -24,8 +24,6 @@
 #include "EventQueueStrategy.h"
 #include "PollThread.h"
 
-class IDllWaylandClient;
-
 struct wl_display;
 
 namespace xbmc
@@ -39,15 +37,13 @@ class EventQueueStrategy :
 {
 public:
 
-  EventQueueStrategy(IDllWaylandClient &clientLibrary,
-                     struct wl_display *display);
+  EventQueueStrategy(struct wl_display *display);
 
   void PushAction(const Action &action);
   void DispatchEventsFromMain();
 
 private:
 
-  IDllWaylandClient &m_clientLibrary;
   struct wl_display *m_display;
 
   events::PollThread m_thread;

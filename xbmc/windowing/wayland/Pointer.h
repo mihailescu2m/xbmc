@@ -21,8 +21,6 @@
  */
 #include <wayland-client.h>
 
-class IDllWaylandClient;
-
 namespace xbmc
 {
 namespace wayland
@@ -57,8 +55,7 @@ class Pointer
 {
 public:
 
-  Pointer(IDllWaylandClient &,
-          struct wl_pointer *,
+  Pointer(struct wl_pointer *,
           IPointerReceiver &);
   ~Pointer();
 
@@ -120,7 +117,6 @@ private:
 
   static const struct wl_pointer_listener m_listener;
 
-  IDllWaylandClient &m_clientLibrary;
   struct wl_pointer *m_pointer;
   IPointerReceiver &m_receiver;
 };

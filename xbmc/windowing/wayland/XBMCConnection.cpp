@@ -31,9 +31,6 @@
 
 #include "utils/StringUtils.h"
 
-#include "DllWaylandClient.h"
-#include "DllXKBCommon.h"
-
 #include "Callback.h"
 #include "Compositor.h"
 #include "Display.h"
@@ -42,10 +39,8 @@
 #include "Region.h"
 #include "Shell.h"
 
-#include "WaylandProtocol.h"
 #include "XBMCConnection.h"
 
-#include "Wayland11EventQueueStrategy.h"
 #include "Wayland12EventQueueStrategy.h"
 
 namespace xbmc
@@ -123,7 +118,7 @@ class WaylandGlobalObject :
 public:
 
   WaylandGlobalObject(uint32_t minimum,
-                      struct wl_interface **interface) :
+                      const struct wl_interface *interface) :
     GlobalInterface(),
     m_minimum(minimum),
     m_interface(interface)
@@ -131,7 +126,7 @@ public:
   }
   
   WaylandGlobalObject(uint32_t minimum,
-                      struct wl_interface **interface,
+                      const struct wl_interface *interface,
                       const AvailabilityHook &hook) :
     GlobalInterface(hook),
     m_minimum(minimum),
@@ -144,7 +139,7 @@ public:
 private:
 
   uint32_t m_minimum;
-  struct wl_interface **m_interface;
+  const struct wl_interface *m_interface;
 };
 
 /* A StoredGlobalInterface is an implementation of RemoteGlobalInterface
@@ -171,7 +166,7 @@ public:
    * a wrapper class around that wayland object */
   StoredGlobalInterface(const Factory &factory,
                         uint32_t minimum,
-                        struct wl_interface **interface) :
+                        const struct wl_interface *interface) :
     m_waylandObject(minimum, interface),
     m_factory(factory)
   {
@@ -179,7 +174,7 @@ public:
 
   StoredGlobalInterface(const Factory &factory,
                         uint32_t minimum,
-                        struct wl_interface **interface,
+                        const struct wl_interface *interface,
                         const GlobalInterface::AvailabilityHook &hook) :
     m_waylandObject(minimum, interface, hook),
     m_factory(factory)
@@ -216,9 +211,7 @@ class XBMCConnection::Private :
 {
 public:
 
-  Private(IDllWaylandClient &clientLibrary,
-          IDllXKBCommon &xkbCommonLibrary,
-          EventInjector &eventInjector);
+  explicit Private(EventInjector &eventInjector);
   ~Private();
 
   /* Synchronization entry point - call this function to issue a
@@ -244,9 +237,6 @@ public:
   
 private:
 
-  IDllWaylandClient &m_clientLibrary;
-  IDllXKBCommon &m_xkbCommonLibrary;
-  
   EventInjector m_eventInjector;
 
   /* Do not call this from a non-main thread. The main thread may be
@@ -388,22 +378,19 @@ const std::string OutputName("wl_output");
 
 /* These are functions that satisfy the definition of a "Factory"
  * for the purposes of StoredGlobalInterface */
-xw::Compositor * CreateCompositor(struct wl_compositor *compositor,
-                                  IDllWaylandClient *clientLibrary)
+xw::Compositor * CreateCompositor(struct wl_compositor *compositor)
 {
-  return new xw::Compositor(*clientLibrary, compositor);
+  return new xw::Compositor(compositor);
 }
 
-xw::Output * CreateOutput(struct wl_output *output,
-                          IDllWaylandClient *clientLibrary)
+xw::Output * CreateOutput(struct wl_output *output)
 {
-  return new xw::Output(*clientLibrary, output);
+  return new xw::Output(output);
 }
 
-xw::Shell * CreateShell(struct wl_shell *shell,
-                        IDllWaylandClient *clientLibrary)
+xw::Shell * CreateShell(struct wl_shell *shell)
 {
-  return new xw::Shell(*clientLibrary, shell);
+  return new xw::Shell(shell);
 }
 
 bool ConstructorMatchesInterface(const xw::RemoteGlobalInterface::Constructor &constructor,
@@ -469,19 +456,9 @@ const unsigned int RequestedSeatVersion = 1;
  * and remove support for wayland versions <= 1.1.
  */
 xwe::IEventQueueStrategy *
-EventQueueForClientVersion(IDllWaylandClient &clientLibrary,
-                           struct wl_display *display)
+EventQueueForClientVersion(struct wl_display *display)
 {
-  /* TODO: Test for wl_display_read_events / wl_display_prepare_read */
-  const bool version12 =
-    clientLibrary.wl_display_read_events_proc() &&
-    clientLibrary.wl_display_prepare_read_proc();
-  if (version12)
-    return new xw::version_12::EventQueueStrategy(clientLibrary,
-                                                  display);
-  else
-    return new xw::version_11::EventQueueStrategy(clientLibrary,
-                                                  display);
+  return new xw::version_12::EventQueueStrategy(display);
 }
 }
 
@@ -504,31 +481,24 @@ EventQueueForClientVersion(IDllWaylandClient &clientLibrary,
  * when our wl_registry.add_listener request has finished processing
  * on both the server and client side
  */
-xw::XBMCConnection::Private::Private(IDllWaylandClient &clientLibrary,
-                                     IDllXKBCommon &xkbCommonLibrary,
-                                     EventInjector &eventInjector) :
-  m_clientLibrary(clientLibrary),
-  m_xkbCommonLibrary(xkbCommonLibrary),
+xw::XBMCConnection::Private::Private(EventInjector &eventInjector) :
   m_eventInjector(eventInjector),
-  m_display(new xw::Display(clientLibrary)),
-  m_registry(new xw::Registry(clientLibrary,
-                              m_display->GetWlDisplay(),
+  m_display(new xw::Display()),
+  m_registry(new xw::Registry(m_display->GetWlDisplay(),
                               *this)),
-  m_compositor(std::bind(CreateCompositor, std::placeholders::_1,
-                         &m_clientLibrary),
+  m_compositor(std::bind(CreateCompositor, std::placeholders::_1),
                RequestedCompositorVersion,
-               clientLibrary.Get_wl_compositor_interface()),
-  m_shell(std::bind(CreateShell, std::placeholders::_1, &m_clientLibrary),
+               &wl_compositor_interface),
+  m_shell(std::bind(CreateShell, std::placeholders::_1),
           RequestedShellVersion,
-          clientLibrary.Get_wl_shell_interface()),
+          &wl_shell_interface),
   m_seat(RequestedSeatVersion,
-         clientLibrary.Get_wl_seat_interface(),
+         &wl_seat_interface,
          std::bind(&Private::InjectSeat, this)),
-  m_outputs(std::bind(CreateOutput, std::placeholders::_1, &m_clientLibrary),
+  m_outputs(std::bind(CreateOutput, std::placeholders::_1),
             RequestedOutputVersion,
-            clientLibrary.Get_wl_output_interface()),
-  m_eventQueue(EventQueueForClientVersion(m_clientLibrary,
-                                          m_display->GetWlDisplay()))
+            &wl_output_interface),
+  m_eventQueue(EventQueueForClientVersion(m_display->GetWlDisplay()))
 {
   /* Tell CWinEvents what our event queue is. That way
    * CWinEvents::MessagePump is now able to dispatch events from
@@ -547,9 +517,7 @@ xw::XBMCConnection::Private::InjectSeat()
    * know about it so that it can wrap it and query it for more
    * information about input devices */
   struct wl_seat *seat = m_seat.FetchPending(*m_registry);
-  (*m_eventInjector.setWaylandSeat)(m_clientLibrary,
-                                    m_xkbCommonLibrary,
-                                    seat);
+  (*m_eventInjector.setWaylandSeat)(seat);
 }
 
 xw::XBMCConnection::Private::~Private()
@@ -558,10 +526,8 @@ xw::XBMCConnection::Private::~Private()
   (*m_eventInjector.destroyEventQueue)();
 }
 
-xw::XBMCConnection::XBMCConnection(IDllWaylandClient &clientLibrary,
-                                   IDllXKBCommon &xkbCommonLibrary,
-                                   EventInjector &eventInjector) :
-  priv(new Private (clientLibrary, xkbCommonLibrary, eventInjector))
+xw::XBMCConnection::XBMCConnection(EventInjector &eventInjector) :
+  priv(new Private (eventInjector))
 {
 }
 
@@ -658,8 +624,7 @@ void xw::XBMCConnection::Private::WaitForSynchronize()
                                                this));
   
   synchronized = false;
-  synchronizeCallback.reset(new xw::Callback(m_clientLibrary,
-                                             m_display->Sync(),
+  synchronizeCallback.reset(new xw::Callback(m_display->Sync(),
                                              func));
 
   /* For version 1.1 event queues the effect of this is going to be

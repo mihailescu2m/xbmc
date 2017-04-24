@@ -19,8 +19,6 @@
  */
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "WaylandProtocol.h"
 #include "Callback.h"
 
 namespace xw = xbmc::wayland;
@@ -30,23 +28,18 @@ const wl_callback_listener xw::Callback::m_listener =
   Callback::OnCallback
 };
 
-xw::Callback::Callback(IDllWaylandClient &clientLibrary,
-                       struct wl_callback *callback,
+xw::Callback::Callback(struct wl_callback *callback,
                        const Func &func) :
-  m_clientLibrary(clientLibrary),
   m_callback(callback),
   m_func(func)
 {
-  protocol::AddListenerOnWaylandObject(m_clientLibrary,
-                                       m_callback,
-                                       &m_listener,
-                                       reinterpret_cast<void *>(this));
+  wl_callback_add_listener(m_callback, &m_listener,
+                           reinterpret_cast<void *>(this));
 }
 
 xw::Callback::~Callback()
 {
-  protocol::DestroyWaylandObject(m_clientLibrary,
-                                 m_callback);
+  wl_callback_destroy(m_callback);
 }
 
 struct wl_callback *

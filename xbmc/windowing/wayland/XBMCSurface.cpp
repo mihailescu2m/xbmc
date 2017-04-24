@@ -24,9 +24,6 @@
 
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "DllWaylandEgl.h"
-
 #include "Callback.h"
 #include "Compositor.h"
 #include "OpenGLSurface.h"
@@ -36,7 +33,6 @@
 #include "ShellSurface.h"
 #include "Surface.h"
 
-#include "WaylandProtocol.h"
 #include "XBMCSurface.h"
 
 namespace xbmc
@@ -47,18 +43,13 @@ class XBMCSurface::Private
 {
 public:
 
-  Private(IDllWaylandClient &clientLibrary,
-          IDllWaylandEGL &eglLibrary,
-          const EventInjector &eventInjector,
+  Private(const EventInjector &eventInjector,
           Compositor &compositor,
           Shell &shell,
           uint32_t width,
           uint32_t height);
 
   typedef std::function<struct wl_region * ()> RegionFactory;
-
-  IDllWaylandClient &m_clientLibrary;
-  IDllWaylandEGL &m_eglLibrary;
   
   EventInjector m_eventInjector;
 
@@ -90,27 +81,20 @@ namespace xw = xbmc::wayland;
  * as std::runtime_errors and the object that creates this one
  * needs to handle catching them.
  */
-xw::XBMCSurface::Private::Private(IDllWaylandClient &clientLibrary,
-                                  IDllWaylandEGL &eglLibrary,
-                                  const EventInjector &eventInjector,
+xw::XBMCSurface::Private::Private(const EventInjector &eventInjector,
                                   Compositor &compositor,
                                   Shell &shell,
                                   uint32_t width,
                                   uint32_t height) :
-  m_clientLibrary(clientLibrary),
-  m_eglLibrary(eglLibrary),
   m_eventInjector(eventInjector),
   m_regionFactory(std::bind(&Compositor::CreateRegion,
                             &compositor)),
-  m_surface(new xw::Surface(m_clientLibrary,
-                            compositor.CreateSurface())),
-  m_shellSurface(new xw::ShellSurface(m_clientLibrary,
-                                      shell.CreateShellSurface(
+  m_surface(new xw::Surface(compositor.CreateSurface())),
+  m_shellSurface(new xw::ShellSurface(shell.CreateShellSurface(
                                         m_surface->GetWlSurface()))),
   /* Creating a new xbmc::wayland::OpenGLSurface will manage the
    * attach-and-commit process on eglSwapBuffers */
-  m_glSurface(new xw::OpenGLSurface(m_eglLibrary,
-                                    m_surface->GetWlSurface(),
+  m_glSurface(new xw::OpenGLSurface(m_surface->GetWlSurface(),
                                     width,
                                     height))
 {
@@ -121,7 +105,7 @@ xw::XBMCSurface::Private::Private(IDllWaylandClient &clientLibrary,
    * speedup, especially for larger surfaces. It also means that
    * this window can be placed in an overlay plane, so it can
    * skip compositing alltogether */
-  xw::Region region(m_clientLibrary, m_regionFactory());
+  xw::Region region(m_regionFactory());
   
   region.AddRectangle(0, 0, 640, 480);
   
@@ -139,16 +123,12 @@ xw::XBMCSurface::Private::Private(IDllWaylandClient &clientLibrary,
   (*m_eventInjector.setXBMCSurface)(m_surface->GetWlSurface());
 }
 
-xw::XBMCSurface::XBMCSurface(IDllWaylandClient &clientLibrary,
-                             IDllWaylandEGL &eglLibrary,
-                             const EventInjector &eventInjector,
+xw::XBMCSurface::XBMCSurface(const EventInjector &eventInjector,
                              Compositor &compositor,
                              Shell &shell,
                              uint32_t width,
                              uint32_t height) :
-  priv(new Private(clientLibrary,
-                   eglLibrary,
-                   eventInjector,
+  priv(new Private(eventInjector,
                    compositor,
                    shell,
                    width,
@@ -185,8 +165,7 @@ xw::XBMCSurface::Resize(uint32_t width, uint32_t height)
    * opaque region must also change */
   priv->m_glSurface->Resize(width, height);
   
-  xw::Region region(priv->m_clientLibrary,
-                    priv->m_regionFactory());
+  xw::Region region(priv->m_regionFactory());
   
   region.AddRectangle(0, 0, width, height);
   
@@ -207,8 +186,7 @@ void xw::XBMCSurface::Private::OnFrameCallback(uint32_t time)
 
 void xw::XBMCSurface::Private::AddFrameCallback()
 {
-  m_frameCallback.reset(new xw::Callback(m_clientLibrary,
-                                         m_surface->CreateFrameCallback(),
+  m_frameCallback.reset(new xw::Callback(m_surface->CreateFrameCallback(),
                                          std::bind(&Private::OnFrameCallback,
                                                    this,
                                                    std::placeholders::_1)));
