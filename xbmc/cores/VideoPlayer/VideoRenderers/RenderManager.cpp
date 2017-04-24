@@ -34,15 +34,14 @@
 #include "settings/MediaSettings.h"
 #include "settings/Settings.h"
 
-#if defined(HAS_GL)
 #include "LinuxRendererGL.h"
 #include "HwDecRender/RendererVAAPI.h"
 #include "HwDecRender/RendererVDPAU.h"
-#if defined(TARGET_DARWIN_OSX)
 #include "HwDecRender/RendererVTBGL.h"
-#endif
+#include "LinuxRendererGLES.h"
+
+#if defined(HAS_GL)
 #elif HAS_GLES == 2
-  #include "LinuxRendererGLES.h"
 #if defined(HAS_MMAL)
 #include "HwDecRender/MMALRenderer.h"
 #endif
