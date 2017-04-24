@@ -17,7 +17,6 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
-#include <wayland-client.h>
 
 #include "Surface.h"
 
@@ -35,12 +34,6 @@ xw::WaylandSurfaceListener::GetInstance()
 }
 
 void
-xw::WaylandSurfaceListener::SetHandler(const Handler &handler)
-{
-  m_handler = handler;
-}
-
-void
 xw::WaylandSurfaceListener::SurfaceCreated(xw::Surface &surface)
 {
   if (m_handler)
@@ -51,33 +44,4 @@ xw::Surface::Surface(struct wl_surface *surface) :
   m_surface(surface)
 {
   WaylandSurfaceListener::GetInstance().SurfaceCreated(*this);
-}
-
-xw::Surface::~Surface()
-{
-  wl_surface_destroy(m_surface);
-}
-
-struct wl_surface *
-xw::Surface::GetWlSurface()
-{
-  return m_surface;
-}
-
-struct wl_callback *
-xw::Surface::CreateFrameCallback()
-{
-  return wl_surface_frame(m_surface);
-}
-
-void
-xw::Surface::SetOpaqueRegion(struct wl_region *region)
-{
-  wl_surface_set_opaque_region(m_surface, region);
-}
-
-void
-xw::Surface::Commit()
-{
-  wl_surface_commit(m_surface);
 }
