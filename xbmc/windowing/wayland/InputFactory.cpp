@@ -26,16 +26,12 @@
 
 namespace xw = xbmc::wayland;
 
-xbmc::InputFactory::InputFactory(IDllWaylandClient &clientLibrary,
-                                 IDllXKBCommon &xkbCommonLibrary,
-                                 struct wl_seat *seat,
+xbmc::InputFactory::InputFactory(struct wl_seat *seat,
                                  IEventListener &dispatch,
                                  ITimeoutManager &timeouts) :
-  m_clientLibrary(clientLibrary),
-  m_xkbCommonLibrary(xkbCommonLibrary),
   m_pointerProcessor(dispatch, *this),
   m_keyboardProcessor(dispatch, timeouts),
-  m_seat(new xw::Seat(clientLibrary, seat, *this))
+  m_seat(new xw::Seat(seat, *this))
 {
 }
 
@@ -57,8 +53,7 @@ bool xbmc::InputFactory::InsertPointer(struct wl_pointer *p)
   if (m_pointer.get())
     return false;
 
-  m_pointer.reset(new xw::Pointer(m_clientLibrary,
-                                  p,
+  m_pointer.reset(new xw::Pointer(p,
                                   m_pointerProcessor));
   return true;
 }
@@ -68,9 +63,7 @@ bool xbmc::InputFactory::InsertKeyboard(struct wl_keyboard *k)
   if (m_keyboard.get())
     return false;
 
-  m_keyboard.reset(new xw::Keyboard(m_clientLibrary,
-                                    m_xkbCommonLibrary,
-                                    k,
+  m_keyboard.reset(new xw::Keyboard(k,
                                     m_keyboardProcessor));
   return true;
 }

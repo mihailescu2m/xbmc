@@ -21,9 +21,6 @@
  */
 #include <memory>
 
-class IDllWaylandClient;
-class IDllXKBCommon;
-
 struct wl_compositor;
 struct wl_display;
 struct wl_output;
@@ -55,9 +52,7 @@ public:
   {
     typedef void (*SetEventQueue)(events::IEventQueueStrategy &strategy);
     typedef void (*DestroyEventQueue)();
-    typedef void (*SetWaylandSeat)(IDllWaylandClient &clientLibrary,
-                                   IDllXKBCommon &xkbCommonLibrary,
-                                   struct wl_seat *seat);
+    typedef void (*SetWaylandSeat)(struct wl_seat *seat);
     typedef void (*DestroyWaylandSeat)();
     typedef bool (*MessagePump)();
     
@@ -68,9 +63,7 @@ public:
     MessagePump messagePump;
   };
 
-  XBMCConnection(IDllWaylandClient &clientLibrary,
-                 IDllXKBCommon &xkbCommonLibrary,
-                 EventInjector &injector);
+  XBMCConnection(EventInjector &injector);
   ~XBMCConnection();
   
   void PreferredResolution(RESOLUTION_INFO &res) const;

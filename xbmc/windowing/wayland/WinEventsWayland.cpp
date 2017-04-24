@@ -112,17 +112,13 @@ void CWinEventsWayland::DestroyEventQueueStrategy()
  * object to encapsulate all of that state. When the seat goes away
  * we just unset the manager object and it is all cleaned up at that
  * point */
-void CWinEventsWayland::SetWaylandSeat(IDllWaylandClient &clientLibrary,
-                                       IDllXKBCommon &xkbCommonLibrary,
-                                       struct wl_seat *s)
+void CWinEventsWayland::SetWaylandSeat(struct wl_seat *s)
 {
   if (!g_eventLoop.get())
     throw std::logic_error("Must have a wl_display set before setting "
                            "the wl_seat in CWinEventsWayland ");
 
-  g_inputInstance.reset(new xbmc::InputFactory(clientLibrary,
-                                               xkbCommonLibrary,
-                                               s,
+  g_inputInstance.reset(new xbmc::InputFactory(s,
                                                *g_eventLoop,
                                                *g_eventLoop));
 }

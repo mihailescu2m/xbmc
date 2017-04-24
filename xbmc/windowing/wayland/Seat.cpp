@@ -23,8 +23,6 @@
 
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "WaylandProtocol.h"
 #include "Seat.h"
 
 namespace xw = xbmc::wayland;
@@ -36,24 +34,18 @@ const struct wl_seat_listener xw::Seat::m_listener =
   Seat::HandleCapabilitiesCallback
 };
 
-xw::Seat::Seat(IDllWaylandClient &clientLibrary,
-               struct wl_seat *seat,
+xw::Seat::Seat(struct wl_seat *seat,
                IInputReceiver &reciever) :
-  m_clientLibrary(clientLibrary),
   m_seat(seat),
   m_input(reciever),
   m_currentCapabilities(static_cast<enum wl_seat_capability>(0))
 {
-  protocol::AddListenerOnWaylandObject(m_clientLibrary,
-                                       m_seat,
-                                       &m_listener,
-                                       reinterpret_cast<void *>(this));
+  wl_seat_add_listener(m_seat, &m_listener, reinterpret_cast<void *>(this));
 }
 
 xw::Seat::~Seat()
 {
-  protocol::DestroyWaylandObject(m_clientLibrary,
-                                 m_seat);
+  wl_seat_destroy(m_seat);
 }
 
 void xw::Seat::HandleCapabilitiesCallback(void *data,
@@ -76,30 +68,12 @@ void xw::Seat::HandleCapabilities(enum wl_seat_capability cap)
 
   if (newCaps & WL_SEAT_CAPABILITY_POINTER)
   {
-    struct wl_pointer *pointer =
-      protocol::CreateWaylandObject<struct wl_pointer *,
-                                    struct wl_seat *>(m_clientLibrary,
-                                                      m_seat,
-                                                      m_clientLibrary.Get_wl_pointer_interface());
-    protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                        m_seat,
-                                        WL_SEAT_GET_POINTER,
-                                        pointer);
-    m_input.InsertPointer(pointer);
+    m_input.InsertPointer(wl_seat_get_pointer(m_seat));
   }
 
   if (newCaps & WL_SEAT_CAPABILITY_KEYBOARD)
   {
-    struct wl_keyboard *keyboard =
-      protocol::CreateWaylandObject<struct wl_keyboard *,
-                                    struct wl_seat *>(m_clientLibrary,
-                                                      m_seat,
-                                                      m_clientLibrary.Get_wl_keyboard_interface());
-    protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                        m_seat,
-                                        WL_SEAT_GET_KEYBOARD,
-                                        keyboard);
-    m_input.InsertKeyboard(keyboard);
+    m_input.InsertKeyboard(wl_seat_get_keyboard(m_seat));
   }
 
   if (lostCaps & WL_SEAT_CAPABILITY_POINTER)

@@ -20,8 +20,6 @@
  *
  */
 
-class IDllWaylandClient;
-
 struct wl_region;
 
 namespace xbmc
@@ -32,8 +30,7 @@ class Region
 {
 public:
 
-  Region(IDllWaylandClient &clientLibrary,
-         struct wl_region *);
+  explicit Region(struct wl_region *);
   ~Region();
 
   Region(const Region &) = delete;
@@ -48,7 +45,6 @@ public:
 
 private:
 
-  IDllWaylandClient &m_clientLibrary;
   struct wl_region *m_region;
 };
 }

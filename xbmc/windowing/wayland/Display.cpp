@@ -25,8 +25,6 @@
 
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "WaylandProtocol.h"
 #include "Display.h"
 
 namespace xw = xbmc::wayland;
@@ -55,9 +53,8 @@ xw::WaylandDisplayListener::GetInstance()
 
 std::unique_ptr<xw::WaylandDisplayListener> xw::WaylandDisplayListener::m_instance;
 
-xw::Display::Display(IDllWaylandClient &clientLibrary) :
-  m_clientLibrary(clientLibrary),
-  m_display(m_clientLibrary.wl_display_connect(NULL))
+xw::Display::Display() :
+  m_display(wl_display_connect(NULL))
 {
   /* wl_display_connect won't throw when it fails, but it does
    * return NULL on failure. If this object would be incomplete
@@ -76,8 +73,8 @@ xw::Display::Display(IDllWaylandClient &clientLibrary) :
 
 xw::Display::~Display()
 {
-  m_clientLibrary.wl_display_flush(m_display);
-  m_clientLibrary.wl_display_disconnect(m_display);
+  wl_display_flush(m_display);
+  wl_display_disconnect(m_display);
 }
 
 struct wl_display *
@@ -101,14 +98,5 @@ xw::Display::GetEGLNativeDisplay()
 struct wl_callback *
 xw::Display::Sync()
 {
-  struct wl_callback *callback =
-      protocol::CreateWaylandObject<struct wl_callback *,
-                                    struct wl_display *> (m_clientLibrary,
-                                                          m_display,
-                                                          m_clientLibrary.Get_wl_callback_interface());
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_display,
-                                      WL_DISPLAY_SYNC,
-                                      callback);
-  return callback;
+  return wl_display_sync(m_display);
 }

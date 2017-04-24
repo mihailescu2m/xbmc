@@ -32,17 +32,11 @@
 #include <wayland-client.h>
 #include <wayland-version.h>
 
-#include "DllWaylandClient.h"
-#include "DllWaylandEgl.h"
-#include "DllXKBCommon.h"
-#include "WaylandProtocol.h"
-
 #include "guilib/gui3d.h"
 #include "utils/log.h"
 #include "windowing/WinEvents.h"
 #include "WinEventsWayland.h"
 
-#include "WaylandLibraries.h"
 #include "XBMCConnection.h"
 #include "XBMCSurface.h"
 
@@ -57,34 +51,9 @@ class CEGLNativeTypeWayland::Private
 {
 public:
 
-  std::unique_ptr<xw::Libraries> m_libraries;
   std::unique_ptr<xw::XBMCConnection> m_connection;
   std::unique_ptr<xw::XBMCSurface> m_surface;
-
-  bool LoadWaylandLibraries();
-  void UnloadWaylandLibraries();
 };
-
-bool CEGLNativeTypeWayland::Private::LoadWaylandLibraries()
-{
-  try
-  {
-    m_libraries.reset(new xw::Libraries());
-  }
-  catch (const std::runtime_error &err)
-  {
-    CLog::Log(LOGWARNING, "%s: %s\n",
-              __FUNCTION__, err.what());
-    return false;
-  }
-  
-  return true;
-}
-
-void CEGLNativeTypeWayland::Private::UnloadWaylandLibraries()
-{
-  m_libraries.reset();
-}
 
 #else
 class CEGLNativeTypeWayland::Private
@@ -104,12 +73,6 @@ CEGLNativeTypeWayland::~CEGLNativeTypeWayland()
 bool CEGLNativeTypeWayland::CheckCompatibility()
 {
 #if defined(HAVE_WAYLAND)
-  /* FIXME:
-   * There appears to be a bug in DllDynamic::CanLoad() which causes
-   * it to always return false. We are just loading the library 
-   * directly at CheckCompatibility time now */
-  if (!priv->LoadWaylandLibraries())
-    return false;
 
   return true;
 #else
@@ -123,9 +86,6 @@ void CEGLNativeTypeWayland::Initialize()
 
 void CEGLNativeTypeWayland::Destroy()
 {
-#if defined(HAVE_WAYLAND)
-  priv->UnloadWaylandLibraries();
-#endif
 }
 
 int CEGLNativeTypeWayland::GetQuirks()
@@ -172,9 +132,7 @@ bool CEGLNativeTypeWayland::CreateNativeDisplay()
       CWinEvents::MessagePump
     };
       
-    priv->m_connection.reset(new xw::XBMCConnection(priv->m_libraries->ClientLibrary(),
-                                                    priv->m_libraries->XKBCommonLibrary(),
-                                                    injector));
+    priv->m_connection.reset(new xw::XBMCConnection(injector));
   }
   catch (const std::runtime_error &err)
   {
@@ -222,9 +180,7 @@ bool CEGLNativeTypeWayland::CreateNativeWindow()
       CWinEventsWayland::SetXBMCSurface
     };
 
-    priv->m_surface.reset(new xw::XBMCSurface(priv->m_libraries->ClientLibrary(),
-                                              priv->m_libraries->EGLLibrary(),
-                                              injector,
+    priv->m_surface.reset(new xw::XBMCSurface(injector,
                                               priv->m_connection->GetCompositor(),
                                               priv->m_connection->GetShell(),
                                               info.iScreenWidth,

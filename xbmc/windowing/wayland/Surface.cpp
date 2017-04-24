@@ -19,8 +19,6 @@
  */
 #include <wayland-client.h>
 
-#include "DllWaylandClient.h"
-#include "WaylandProtocol.h"
 #include "Surface.h"
 
 namespace xw = xbmc::wayland;
@@ -49,9 +47,7 @@ xw::WaylandSurfaceListener::SurfaceCreated(xw::Surface &surface)
     m_handler(surface);
 }
 
-xw::Surface::Surface(IDllWaylandClient &clientLibrary,
-                     struct wl_surface *surface) :
-  m_clientLibrary(clientLibrary),
+xw::Surface::Surface(struct wl_surface *surface) :
   m_surface(surface)
 {
   WaylandSurfaceListener::GetInstance().SurfaceCreated(*this);
@@ -59,11 +55,7 @@ xw::Surface::Surface(IDllWaylandClient &clientLibrary,
 
 xw::Surface::~Surface()
 {
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_surface,
-                                      WL_SURFACE_DESTROY);
-  protocol::DestroyWaylandObject(m_clientLibrary,
-                                 m_surface);
+  wl_surface_destroy(m_surface);
 }
 
 struct wl_surface *
@@ -75,30 +67,17 @@ xw::Surface::GetWlSurface()
 struct wl_callback *
 xw::Surface::CreateFrameCallback()
 {
-  struct wl_callback *callback =
-    protocol::CreateWaylandObject<struct wl_callback *,
-                                  struct wl_surface *>(m_clientLibrary,
-                                                       m_surface,
-                                                       m_clientLibrary.Get_wl_callback_interface());
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_surface,
-                                      WL_SURFACE_FRAME, callback);
-  return callback;
+  return wl_surface_frame(m_surface);
 }
 
 void
 xw::Surface::SetOpaqueRegion(struct wl_region *region)
 {
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_surface,
-                                      WL_SURFACE_SET_OPAQUE_REGION,
-                                      region);
+  wl_surface_set_opaque_region(m_surface, region);
 }
 
 void
 xw::Surface::Commit()
 {
-  protocol::CallMethodOnWaylandObject(m_clientLibrary,
-                                      m_surface,
-                                      WL_SURFACE_COMMIT);
+  wl_surface_commit(m_surface);
 }

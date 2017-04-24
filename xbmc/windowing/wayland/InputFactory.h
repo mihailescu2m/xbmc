@@ -29,9 +29,6 @@
 
 #include <memory>
 
-class IDllWaylandClient;
-class IDllXKBCommon;
-
 struct wl_keyboard;
 struct wl_pointer;
 struct wl_seat;
@@ -49,9 +46,7 @@ class InputFactory :
 {
 public:
 
-  InputFactory(IDllWaylandClient &clientLibrary,
-               IDllXKBCommon &xkbCommonLibrary,
-               struct wl_seat *seat,
+  InputFactory(struct wl_seat *seat,
                IEventListener &dispatch,
                ITimeoutManager &timeouts);
 
@@ -69,9 +64,6 @@ private:
 
   void RemovePointer();
   void RemoveKeyboard();
-
-  IDllWaylandClient &m_clientLibrary;
-  IDllXKBCommon &m_xkbCommonLibrary;
 
   PointerProcessor m_pointerProcessor;
   KeyboardProcessor m_keyboardProcessor;
