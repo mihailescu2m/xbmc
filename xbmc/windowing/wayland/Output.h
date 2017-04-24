@@ -32,7 +32,9 @@ struct Output
 public:
 
   Output(struct wl_output *);
-  ~Output();
+  ~Output() {
+    wl_output_destroy(m_output);
+  }
 
   Output(const Output &) = delete;
   Output &operator=(const Output &) = delete;
@@ -54,7 +56,9 @@ public:
     enum wl_output_transform outputTransformation;
   };
 
-  struct wl_output * GetWlOutput();
+  struct wl_output * GetWlOutput() {
+    return m_output;
+  }
 
   /* It is a precondition violation to use the following four
    * functions when the first modes have not yet been received.
@@ -74,10 +78,14 @@ public:
    * of this size in order to avoid scaling. */
   const ModeGeometry & PreferredMode();
 
-  const std::vector <ModeGeometry> & AllModes();
+  const std::vector <ModeGeometry> & AllModes() const {
+    return m_modes;
+  }
 
   /* The geometry represents the physical geometry of this monitor */
-  const PhysicalGeometry & Geometry();
+  const PhysicalGeometry & Geometry() const {
+    return m_geometry;
+  }
   
   /* The scale factor of this output is an integer value representing
    * the number of output pixels per hardware pixel. For instance,
@@ -86,7 +94,9 @@ public:
    * "2". This is useful for supporting HiDPI display modes where,
    * for instance we allocate a 3360x2100 buffer but display our UI
    * elements at 1680x1050 */
-  uint32_t ScaleFactor();
+  uint32_t ScaleFactor() const {
+    return m_scaleFactor;
+  }
 
   static void GeometryCallback(void *,
                                struct wl_output *,
@@ -126,8 +136,16 @@ private:
             int32_t width,
             int32_t height,
             int32_t refresh);
-  void Scale(int32_t);
-  void Done();
+
+  /* This function is called whenever the scaling factor for this
+   * output changes. It there for clients to support HiDPI displays,
+   * although unused as of present */
+  void Scale(int32_t factor) {
+    m_scaleFactor = factor;
+  }
+
+  void Done() {
+  }
 
   struct wl_output *m_output;
 
