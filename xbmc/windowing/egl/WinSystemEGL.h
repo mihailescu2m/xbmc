@@ -28,7 +28,7 @@
 
 #include "rendering/gles/RenderSystemGLES.h"
 #include "utils/GlobalsHandling.h"
-#include <EGL/egl.h>
+#include "system_egl.h"
 #include "windowing/WinSystem.h"
 #include "threads/SystemClock.h"
 
