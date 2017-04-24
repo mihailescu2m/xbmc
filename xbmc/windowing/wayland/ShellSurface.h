@@ -30,15 +30,25 @@ class ShellSurface
 public:
 
   explicit ShellSurface(struct wl_shell_surface *shellSurface);
-  ~ShellSurface();
+  ~ShellSurface() {
+    wl_shell_surface_destroy(m_shellSurface);
+  }
 
   ShellSurface(const ShellSurface &) = delete;
   ShellSurface &operator=(const ShellSurface &) = delete;
 
-  struct wl_shell_surface * GetWlShellSurface();
+  struct wl_shell_surface * GetWlShellSurface() {
+    return m_shellSurface;
+  }
+
   void SetFullscreen(enum wl_shell_surface_fullscreen_method method,
                      uint32_t framerate,
-                     struct wl_output *output);
+                     struct wl_output *output) {
+    wl_shell_surface_set_fullscreen(m_shellSurface,
+                                    method,
+                                    framerate,
+                                    output);
+  }
 
   static const wl_shell_surface_listener m_listener;
 
