@@ -1,20 +1,22 @@
-if(OPENGLES_FOUND OR AML_FOUND OR IMX_FOUND OR MMAL_FOUND)
-  set(SOURCES EGLWrapper.cpp
-              EGLNativeTypeFbdev.cpp)
+if (NOT GBM_FOUND)
+  if(OPENGLES_FOUND OR AML_FOUND OR IMX_FOUND OR MMAL_FOUND)
+    set(SOURCES EGLWrapper.cpp
+                EGLNativeTypeFbdev.cpp)
 
-  set(HEADERS EGLNativeType.h
-              EGLQuirks.h
-              EGLWrapper.h
-              EGLNativeTypeFbdev.h)
-endif()
+    set(HEADERS EGLNativeType.h
+                EGLQuirks.h
+                EGLWrapper.h
+                EGLNativeTypeFbdev.h)
+  endif()
 
-if(HYBRIS_FOUND)
-  list(APPEND SOURCES EGLNativeTypeHybris.cpp)
-endif()
+  if(HYBRIS_FOUND)
+    list(APPEND SOURCES EGLNativeTypeHybris.cpp)
+  endif()
 
-if(OPENGLES_FOUND)
-  list(APPEND SOURCES WinSystemEGL.cpp)
-  list(APPEND HEADERS WinSystemEGL.h)
+  if(OPENGLES_FOUND)
+    list(APPEND SOURCES WinSystemEGL.cpp)
+    list(APPEND HEADERS WinSystemEGL.h)
+  endif()
 endif()
 
 if(CORE_SYSTEM_NAME STREQUAL android)
