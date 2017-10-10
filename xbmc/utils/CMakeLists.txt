@@ -15,6 +15,8 @@ set(SOURCES ActorProtocol.cpp
             EndianSwap.cpp
             Environment.cpp
             Fanart.cpp
+            fastmemcpy.c
+            fastmemcpy-arm.S
             FileOperationJob.cpp
             FileUtils.cpp
             fstrcmp.c

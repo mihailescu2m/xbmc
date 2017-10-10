@@ -22,6 +22,7 @@
 #include "DVDClock.h"
 #include "cores/VideoPlayer/VideoRenderers/RenderManager.h"
 #include "utils/log.h"
+#include "utils/fastmemcpy.h"
 #include "cores/FFmpeg.h"
 #include "Util.h"
 
@@ -91,7 +92,7 @@ bool CDVDCodecUtils::CopyPicture(DVDVideoPicture* pDst, DVDVideoPicture* pSrc)
 
   for (int y = 0; y < h; y++)
   {
-    memcpy(d, s, w);
+    fast_memcpy(d, s, w);
     s += pSrc->iLineSize[0];
     d += pDst->iLineSize[0];
   }
@@ -103,7 +104,7 @@ bool CDVDCodecUtils::CopyPicture(DVDVideoPicture* pDst, DVDVideoPicture* pSrc)
   d = pDst->data[1];
   for (int y = 0; y < h; y++)
   {
-    memcpy(d, s, w);
+    fast_memcpy(d, s, w);
     s += pSrc->iLineSize[1];
     d += pDst->iLineSize[1];
   }
@@ -112,7 +113,7 @@ bool CDVDCodecUtils::CopyPicture(DVDVideoPicture* pDst, DVDVideoPicture* pSrc)
   d = pDst->data[2];
   for (int y = 0; y < h; y++)
   {
-    memcpy(d, s, w);
+    fast_memcpy(d, s, w);
     s += pSrc->iLineSize[2];
     d += pDst->iLineSize[2];
   }
@@ -127,13 +128,13 @@ bool CDVDCodecUtils::CopyPicture(YV12Image* pImage, DVDVideoPicture *pSrc)
   int h = pImage->height;
   if ((w == pSrc->iLineSize[0]) && ((unsigned int) pSrc->iLineSize[0] == pImage->stride[0]))
   {
-    memcpy(d, s, w*h);
+    fast_memcpy(d, s, w*h);
   }
   else
   {
     for (int y = 0; y < h; y++)
     {
-      memcpy(d, s, w);
+      fast_memcpy(d, s, w);
       s += pSrc->iLineSize[0];
       d += pImage->stride[0];
     }
@@ -144,13 +145,13 @@ bool CDVDCodecUtils::CopyPicture(YV12Image* pImage, DVDVideoPicture *pSrc)
   h =(pImage->height >> pImage->cshift_y);
   if ((w==pSrc->iLineSize[1]) && ((unsigned int) pSrc->iLineSize[1]==pImage->stride[1]))
   {
-    memcpy(d, s, w*h);
+    fast_memcpy(d, s, w*h);
   }
   else
   {
     for (int y = 0; y < h; y++)
     {
-      memcpy(d, s, w);
+      fast_memcpy(d, s, w);
       s += pSrc->iLineSize[1];
       d += pImage->stride[1];
     }
@@ -159,13 +160,13 @@ bool CDVDCodecUtils::CopyPicture(YV12Image* pImage, DVDVideoPicture *pSrc)
   d = pImage->plane[2];
   if ((w==pSrc->iLineSize[2]) && ((unsigned int) pSrc->iLineSize[2]==pImage->stride[2]))
   {
-    memcpy(d, s, w*h);
+    fast_memcpy(d, s, w*h);
   }
   else
   {
     for (int y = 0; y < h; y++)
     {
-      memcpy(d, s, w);
+      fast_memcpy(d, s, w);
       s += pSrc->iLineSize[2];
       d += pImage->stride[2];
     }
@@ -203,7 +204,7 @@ DVDVideoPicture* CDVDCodecUtils::ConvertToNV12Picture(DVDVideoPicture *pSrc)
       uint8_t *d = pPicture->data[0];
       for (int y = 0; y < (int)pSrc->iHeight; y++)
       {
-        memcpy(d, s, pSrc->iWidth);
+        fast_memcpy(d, s, pSrc->iWidth);
         s += pSrc->iLineSize[0];
         d += pPicture->iLineSize[0];
       }
@@ -294,13 +295,13 @@ bool CDVDCodecUtils::CopyNV12Picture(YV12Image* pImage, DVDVideoPicture *pSrc)
   // Copy Y
   if ((w == pSrc->iLineSize[0]) && ((unsigned int) pSrc->iLineSize[0] == pImage->stride[0]))
   {
-    memcpy(d, s, w*h);
+    fast_memcpy(d, s, w*h);
   }
   else
   {
     for (int y = 0; y < h; y++)
     {
-      memcpy(d, s, w);
+      fast_memcpy(d, s, w);
       s += pSrc->iLineSize[0];
       d += pImage->stride[0];
     }
@@ -313,13 +314,13 @@ bool CDVDCodecUtils::CopyNV12Picture(YV12Image* pImage, DVDVideoPicture *pSrc)
   // Copy packed UV (width is same as for Y as it's both U and V components)
   if ((w==pSrc->iLineSize[1]) && ((unsigned int) pSrc->iLineSize[1]==pImage->stride[1]))
   {
-    memcpy(d, s, w*h);
+    fast_memcpy(d, s, w*h);
   }
   else
   {
     for (int y = 0; y < h; y++)
     {
-      memcpy(d, s, w);
+      fast_memcpy(d, s, w);
       s += pSrc->iLineSize[1];
       d += pImage->stride[1];
     }
@@ -338,13 +339,13 @@ bool CDVDCodecUtils::CopyYUV422PackedPicture(YV12Image* pImage, DVDVideoPicture 
   // Copy YUYV
   if ((w * 2 == pSrc->iLineSize[0]) && ((unsigned int) pSrc->iLineSize[0] == pImage->stride[0]))
   {
-    memcpy(d, s, w*h*2);
+    fast_memcpy(d, s, w*h*2);
   }
   else
   {
     for (int y = 0; y < h; y++)
     {
-      memcpy(d, s, w*2);
+      fast_memcpy(d, s, w*2);
       s += pSrc->iLineSize[0];
       d += pImage->stride[0];
     }

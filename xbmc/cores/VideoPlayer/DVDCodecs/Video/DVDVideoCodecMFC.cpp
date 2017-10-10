@@ -17,6 +17,7 @@
 #endif
 
 #include "DVDVideoCodecMFC.h"
+#include "utils/fastmemcpy.h"
 
 #include <sys/mman.h>
 #include <sys/ioctl.h>
@@ -304,7 +305,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     return false;
   // Fill it with the header
   sinkBuffer.iBytesUsed[0] = extraSize;
-  memcpy(sinkBuffer.cPlane[0], extraData, extraSize);
+  fast_memcpy(sinkBuffer.cPlane[0], extraData, extraSize);
   // Enqueue buffer
   if (!m_MFCOutput->PushBuffer(&sinkBuffer))
     return false;
@@ -484,7 +485,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
     if (m_MFCOutput->GetBuffer(m_Buffer)) {
       debug_log(LOGDEBUG, "%s::%s - Got empty buffer %d from MFC Output, filling", CLASSNAME, __func__, m_Buffer->iIndex);
       m_Buffer->iBytesUsed[0] = demuxer_bytes;
-      memcpy((uint8_t *)m_Buffer->cPlane[0], demuxer_content, m_Buffer->iBytesUsed[0]);
+      fast_memcpy((uint8_t *)m_Buffer->cPlane[0], demuxer_content, m_Buffer->iBytesUsed[0]);
       long* longPts = (long*)&pts;
       m_Buffer->timeStamp.tv_sec = longPts[0];
       m_Buffer->timeStamp.tv_usec = longPts[1];
