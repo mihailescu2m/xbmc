@@ -36,6 +36,17 @@
 #include "utils/log.h"
 #include <memory>
 
+/* define what FFMPEG codecs to use */
+/* leave empty string for autodetect */
+#define H263_FFMPEG_CODEC  ""
+#define H264_FFMPEG_CODEC  ""
+#define MPEG4_FFMPEG_CODEC ""
+#define MPEG1_FFMPEG_CODEC ""
+#define MPEG2_FFMPEG_CODEC ""
+#define VC1_FFMPEG_CODEC   ""
+#define VP8_FFMPEG_CODEC   ""
+#define VP9_FFMPEG_CODEC   ""
+
 #ifndef TARGET_POSIX
 #define RINT(x) ((x) >= 0 ? ((int)((x) + 0.5)) : ((int)((x) - 0.5)))
 #else
@@ -321,7 +332,36 @@ bool CDVDVideoCodecFFmpeg::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options
   }
   m_formats.push_back(AV_PIX_FMT_NONE); /* always add none to get a terminated list in ffmpeg world */
 
-  pCodec = avcodec_find_decoder(hints.codec);
+  switch(hints.codec)
+  {
+    case AV_CODEC_ID_H263:
+      pCodec = avcodec_find_decoder_by_name(H263_FFMPEG_CODEC);
+      break;
+    case AV_CODEC_ID_H264:
+      pCodec = avcodec_find_decoder_by_name(H264_FFMPEG_CODEC);
+      break;
+    case AV_CODEC_ID_MPEG4:
+      pCodec = avcodec_find_decoder_by_name(MPEG4_FFMPEG_CODEC);
+      break;
+    case AV_CODEC_ID_MPEG1VIDEO:
+      pCodec = avcodec_find_decoder_by_name(MPEG1_FFMPEG_CODEC);
+      break;
+    case AV_CODEC_ID_MPEG2VIDEO:
+      pCodec = avcodec_find_decoder_by_name(MPEG2_FFMPEG_CODEC);
+      break;
+    case AV_CODEC_ID_VC1:
+      pCodec = avcodec_find_decoder_by_name(VC1_FFMPEG_CODEC);
+      break;
+    case AV_CODEC_ID_VP8:
+      pCodec = avcodec_find_decoder_by_name(VP8_FFMPEG_CODEC);
+      break;
+    case AV_CODEC_ID_VP9:
+      pCodec = avcodec_find_decoder_by_name(VP9_FFMPEG_CODEC);
+      break;
+  }
+
+  if (pCodec == NULL)
+    pCodec = avcodec_find_decoder(hints.codec);
 
   if(pCodec == NULL)
   {
