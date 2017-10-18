@@ -14,10 +14,10 @@
   #define V4L2_CAP_VIDEO_M2M_MPLANE 0x00004000
 #endif
 
-#define BUFFER_SIZE        1048576 // Compressed frame size. 1080p mpeg4 10Mb/s can be >256k in size, so this is to make sure frame fits into the buffer
-                                   // For very unknown reason lesser than 1Mb buffer causes MFC to corrupt its own setup, setting inapropriate values
-#define INPUT_BUFFERS      3       // 3 input buffers. 2 is enough almost for everything, but on some heavy videos 3 makes a difference
-#define OUTPUT_BUFFERS     3       // Triple buffering for smooth output
+#define MFC_BUFFER_SIZE        1048576 // Compressed frame size. 1080p mpeg4 10Mb/s can be >256k in size, so this is to make sure frame fits into the buffer
+                                       // For very unknown reason lesser than 1Mb buffer causes MFC to corrupt its own setup, setting inapropriate values
+#define MFC_INPUT_BUFFERS      3       // 3 input buffers. 2 is enough almost for everything, but on some heavy videos 3 makes a difference
+#define MFC_OUTPUT_BUFFERS     3       // Triple buffering for smooth output
 
 #define memzero(x) memset(&(x), 0, sizeof (x))
 

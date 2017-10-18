@@ -291,12 +291,12 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     default:
       return false;
   }
-  fmt.fmt.pix_mp.plane_fmt[0].sizeimage = BUFFER_SIZE;
+  fmt.fmt.pix_mp.plane_fmt[0].sizeimage = MFC_BUFFER_SIZE;
   // Set encoded format
   if (!m_MFCOutput->SetFormat(&fmt))
     return false;
   // Init with number of input buffers predefined
-  if (!m_MFCOutput->Init(INPUT_BUFFERS))
+  if (!m_MFCOutput->Init(MFC_INPUT_BUFFERS))
     return false;
 
   // Get empty buffer to fill
@@ -374,7 +374,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     if (!m_FIMCCapture->SetFormat(&fmt))
       return false;
     // Init FIMC capture with number of buffers predefined
-    if (!m_FIMCCapture->Init(OUTPUT_BUFFERS))
+    if (!m_FIMCCapture->Init(MFC_OUTPUT_BUFFERS))
       return false;
 
     // Queue all buffers (empty) to FIMC Capture
