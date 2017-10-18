@@ -485,9 +485,8 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
       debug_log(LOGDEBUG, "%s::%s - Got empty buffer %d from MFC Output, filling", CLASSNAME, __func__, m_Buffer->iIndex);
       m_Buffer->iBytesUsed[0] = demuxer_bytes;
       memcpy((uint8_t *)m_Buffer->cPlane[0], demuxer_content, m_Buffer->iBytesUsed[0]);
-      long* longPts = (long*)&pts;
-      m_Buffer->timeStamp.tv_sec = longPts[0];
-      m_Buffer->timeStamp.tv_usec = longPts[1];
+      m_Buffer->timeStamp.tv_sec = ((int64_t)(pts*1.0)) / INT64_C(1000000);
+      m_Buffer->timeStamp.tv_usec = ((int64_t)(pts*1.0)) % INT64_C(1000000);
 
       if (!m_MFCOutput->PushBuffer(m_Buffer)) {
         m_bCodecHealthy = false;
@@ -546,11 +545,10 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
     m_BufferNowOnScreen->iIndex = -1;
   }
 
-  long longPts[2] = { m_Buffer->timeStamp.tv_sec, m_Buffer->timeStamp.tv_usec };
   m_videoBuffer.data[0]         = (BYTE*)m_Buffer->cPlane[0];
   m_videoBuffer.data[1]         = (BYTE*)m_Buffer->cPlane[1];
   m_videoBuffer.data[2]         = (BYTE*)m_Buffer->cPlane[2];
-  m_videoBuffer.pts             = m_codecPts = *((double*)&longPts[0]);
+  m_videoBuffer.pts             = m_Buffer->timeStamp.tv_sec * INT64_C(1000000) + m_Buffer->timeStamp.tv_usec;
 
   std::swap(m_Buffer, m_BufferNowOnScreen);
 
